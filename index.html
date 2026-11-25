@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistem Pendataan Motor Baksos - Yayasan Bakti Sosial Indonesia</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    /* CSS CETAK / PDF PRINT PREVIEW FORM-A4 */
+    @media print {
+      @page { size: A4 portrait; margin: 12mm 10mm; }
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, serif, sans-serif !important;
+        font-size: 10pt !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      header, main, footer, .no-print, #modalMotor, #modalService, #modalSettings, #toastContainer {
+        display: none !important;
+      }
+      #printableArea {
+        display: block !important;
+        position: relative !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .kop-header { border-bottom: 3px double #000000; padding-bottom: 8px; margin-bottom: 12px; text-align: center; }
+      .kop-title { font-size: 16pt; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
+      .kop-sub { font-size: 9pt; margin-top: 2px; }
+      .report-title { font-size: 12pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 10px; margin-bottom: 2px; }
+      table.print-table { width: 100% !important; border-collapse: collapse !important; margin-top: 6px !important; margin-bottom: 14px !important; page-break-inside: auto; }
+      table.print-table tr { page-break-inside: avoid; page-break-after: auto; }
+      table.print-table th, table.print-table td { border: 1px solid #000000 !important; padding: 5px 6px !important; font-size: 9pt !important; color: #000000 !important; }
+      table.print-table th { background-color: #f1f5f9 !important; font-weight: bold !important; text-align: center !important; text-transform: uppercase !important; }
+      .section-heading { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; border-bottom: 1px solid #000000; padding-bottom: 2px; }
+      .summary-box { border: 1px solid #000000; padding: 8px; background-color: #fafafa !important; margin-bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 9pt; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 no-print"></div>
+
+  <!-- HEADER NAVBAR (NO PRINT) -->
+  <header class="no-print border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 md:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3 w-full md:w-auto">
+      <div class="p-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl shadow-inner">
+        <i data-lucide="bike" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base sm:text-lg font-bold text-slate-100 tracking-wide">Pendataan Motor Baksos Yayasan</h1>
+          <span id="syncBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="syncText">Cloud Sync</span>
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Sistem Logistik, Pemeliharaan, Reminder Telegram & Potongan Sewa</p>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+      <button onclick="fetchFromCloud(true)" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Refresh Data dari Google Sheets">
+        <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4 text-sky-400"></i>
+        <span class="hidden lg:inline">Sync</span>
+      </button>
+
+      <button onclick="openMotorModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md shadow-amber-500/20">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Tambah Motor</span>
+      </button>
+
+      <button onclick="openServiceModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md shadow-cyan-600/20">
+        <i data-lucide="wrench" class="w-4 h-4"></i>
+        <span>Catat Service</span>
+      </button>
+
+      <button onclick="exportAllCSV()" class="flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Export Semua Data ke CSV">
+        <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+        <span class="hidden sm:inline">CSV</span>
+      </button>
+
+      <button onclick="triggerPrintReport()" class="flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Cetak Laporan Resmi A4 / PDF">
+        <i data-lucide="printer" class="w-4 h-4 text-amber-400"></i>
+        <span class="hidden sm:inline">Cetak</span>
+      </button>
+
+      <button onclick="openSettingsModal()" class="flex items-center justify-center p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg transition" title="Pengaturan Endpoint API">
+        <i data-lucide="settings" class="w-4 h-4 text-slate-300"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT (NO PRINT) -->
+  <main class="no-print p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 w-full flex-grow">
+
+    <!-- EXECUTIVE STAT CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Armada Motor</span>
+          <i data-lucide="shield" class="w-5 h-5 text-amber-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-slate-100 font-mono" id="stat-total-armada">0</div>
+        <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
+          <span>Yayasan: <strong class="text-slate-300" id="stat-motor-yayasan">0</strong></span>
+          <span>Sewaan: <strong class="text-amber-400" id="stat-motor-sewaan">0</strong></span>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Status Reminder Servis</span>
+          <i data-lucide="bell-ring" class="w-5 h-5 text-rose-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-slate-100 font-mono" id="stat-perlu-servis">0 Unit</div>
+        <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
+          <span>Menunggu: <strong class="text-amber-400" id="stat-menunggu">0</strong></span>
+          <span>Siap Servis: <strong class="text-sky-400" id="stat-siap-servis">0</strong></span>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Biaya Service</span>
+          <i data-lucide="wrench" class="w-5 h-5 text-cyan-400"></i>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-cyan-400 font-mono" id="stat-total-biaya">Rp 0</div>
+        <p class="text-xs text-slate-500 mt-1">Total <span id="stat-jumlah-service">0 kali</span> tindakan servis</p>
+      </div>
+
+      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Potongan Biaya Sewa</span>
+          <i data-lucide="scissors" class="w-5 h-5 text-emerald-400"></i>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-emerald-400 font-mono" id="stat-potongan-sewa">Rp 0</div>
+        <p class="text-xs text-slate-500 mt-1">Klaim sparepart khusus sewaan</p>
+      </div>
+    </div>
+
+    <!-- TAB NAVIGATION & SEARCH TOOLBAR -->
+    <div class="bg-slate-900/70 border border-slate-800 p-4 rounded-xl space-y-4">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 w-full md:w-auto">
+          <button onclick="switchTab('armada')" id="tab-btn-armada" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-amber-500 shadow">
+            Master Data & Jadwal Servis
+          </button>
+          <button onclick="switchTab('service')" id="tab-btn-service" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200">
+            Riwayat Service
+          </button>
+          <button onclick="switchTab('rekap')" id="tab-btn-rekap" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200">
+            Rekap Potongan Sewa
+          </button>
+        </div>
+
+        <div class="relative w-full md:w-80">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderCurrentTab()" placeholder="Cari nama, plat, pengguna, bengkel..." class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs sm:text-sm rounded-lg pl-9 pr-4 py-2 focus:border-amber-500 focus:outline-none transition" />
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CONTENT 1: MASTER DATA ARMADA MOTOR -->
+    <div id="tab-content-armada" class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
+          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-4 text-center w-10">No</th>
+              <th class="py-3 px-4">Unit Motor & Plat</th>
+              <th class="py-3 px-4 text-center">Kategori</th>
+              <th class="py-3 px-4">PJ / Pengguna</th>
+              <th class="py-3 px-4">Jadwal Servis</th>
+              <th class="py-3 px-4 text-center">Status Reminder</th>
+              <th class="py-3 px-4 text-center w-36">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="armadaTableBody" class="divide-y divide-slate-800/60 font-medium"></tbody>
+        </table>
+      </div>
+      <div id="emptyArmada" class="hidden p-8 text-center text-slate-500">
+        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+        <p>Belum ada data armada motor yang tersimpan.</p>
+      </div>
+    </div>
+
+    <!-- TAB CONTENT 2: RIWAYAT SERVICE / MAINTENANCE -->
+    <div id="tab-content-service" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
+          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-4 text-center w-12">No</th>
+              <th class="py-3 px-4">Tanggal Servis</th>
+              <th class="py-3 px-4">Motor & Plat</th>
+              <th class="py-3 px-4">Jenis Service / Sparepart</th>
+              <th class="py-3 px-4">Nama Bengkel</th>
+              <th class="py-3 px-4 text-right">Biaya (Rp)</th>
+              <th class="py-3 px-4 text-center">Catatan Pemotongan</th>
+              <th class="py-3 px-4 text-center w-20">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="serviceTableBody" class="divide-y divide-slate-800/60"></tbody>
+        </table>
+      </div>
+      <div id="emptyService" class="hidden p-8 text-center text-slate-500">
+        <i data-lucide="wrench" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+        <p>Belum ada riwayat service motor yang dicatat.</p>
+      </div>
+    </div>
+
+    <!-- TAB CONTENT 3: REKAPITULASI POTONGAN BIAYA SEWA -->
+    <div id="tab-content-rekap" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div class="p-4 bg-slate-950/60 border-b border-slate-800">
+        <p class="text-xs text-slate-400">
+          <i data-lucide="info" class="w-4 h-4 inline mr-1 text-amber-400"></i>
+          Hanya berlaku untuk <strong>Motor Sewaan</strong>. Biaya sparepart khusus (seperti Aki, Ban, Mesin) diklaim sebagai pemotongan biaya sewa bulanan ke pemilik motor.
+        </p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
+          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-4 text-center w-12">No</th>
+              <th class="py-3 px-4">Nama Motor Sewaan</th>
+              <th class="py-3 px-4">Plat Nomor</th>
+              <th class="py-3 px-4">Penanggung Jawab</th>
+              <th class="py-3 px-4 text-center">Jumlah Rincian Service</th>
+              <th class="py-3 px-4 text-right">Total Potongan Sewa (Rp)</th>
+            </tr>
+          </thead>
+          <tbody id="rekapTableBody" class="divide-y divide-slate-800/60 font-medium"></tbody>
+        </table>
+      </div>
+      <div id="emptyRekap" class="hidden p-8 text-center text-slate-500">
+        <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+        <p>Tidak ada data motor sewaan yang memerlukan klaim potongan sewa.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL FORM: TAMBAH / EDIT MOTOR -->
+  <div id="modalMotor" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="modalMotorTitle" class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="bike" class="w-4 h-4 text-amber-400"></i>
+          <span>Tambah Data Motor Armada</span>
+        </h3>
+        <button onclick="closeMotorModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="formMotor" onsubmit="saveMotorData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
+        <input type="hidden" id="motorEditId" value="" />
+
+        <div>
+          <label class="block font-medium text-slate-400 mb-1">Nama / Merk / Tipe Motor *</label>
+          <input type="text" id="motorNama" required placeholder="Contoh: Honda Supra X 125" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Kategori Motor *</label>
+            <select id="motorKategori" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+              <option value="Yayasan">Yayasan</option>
+              <option value="Sewaan">Sewaan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Plat Nomor *</label>
+            <input type="text" id="motorPlat" required placeholder="B 4589 KLS" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 uppercase font-mono focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Penanggung Jawab / PJ *</label>
+            <input type="text" id="motorPengguna" required placeholder="Contoh: Ustadz Rizky" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Siklus Servis Rutin *</label>
+            <select id="motorInterval" onchange="recalcNextServiceInput()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+              <option value="30">Setiap 1 Bulan (30 Hari)</option>
+              <option value="60" selected>Setiap 2 Bulan (60 Hari)</option>
+              <option value="90">Setiap 3 Bulan (90 Hari)</option>
+              <option value="120">Setiap 4 Bulan (120 Hari)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Tgl Servis Terakhir *</label>
+            <input type="date" id="motorServisTerakhir" onchange="recalcNextServiceInput()" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Jadwal Servis Berikutnya *</label>
+            <input type="date" id="motorJadwalNext" required class="w-full bg-slate-950 border border-slate-800 text-amber-400 font-semibold rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Status Reminder</label>
+            <select id="motorStatus" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+              <option value="Aman">Aman</option>
+              <option value="Menunggu Konfirmasi">Menunggu Konfirmasi</option>
+              <option value="Siap Servis">Siap Servis</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Kondisi / Keterangan</label>
+            <input type="text" id="motorKeterangan" placeholder="Ban bagus, oli aman..." class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeMotorModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">Simpan & Sync</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FORM: CATAT SERVICE -->
+  <div id="modalService" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
+          <span>Catat Riwayat Service Motor</span>
+        </h3>
+        <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="formService" onsubmit="saveServiceData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
+        <div>
+          <label class="block font-medium text-slate-400 mb-1">Pilih Motor Armada *</label>
+          <select id="serviceMotorSelect" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Tanggal Service *</label>
+            <input type="date" id="serviceTgl" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Nama Bengkel *</label>
+            <input type="text" id="serviceBengkel" required placeholder="AHASS / Bengkel Jaya" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-400 mb-1">Jenis Service / Penggantian Sparepart *</label>
+          <input type="text" id="serviceJenis" required placeholder="Ganti Oli, Ganti Aki GS, Busi, Kampas Rem" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Biaya Servis (Rp) *</label>
+            <input type="number" id="serviceBiaya" min="0" required placeholder="150000" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 font-mono focus:border-cyan-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-400 mb-1">Status Kategori Pemotongan *</label>
+            <select id="serviceCatatan" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none">
+              <option value="Rutin (Tanggungan Yayasan)">Rutin (Tanggungan Yayasan)</option>
+              <option value="Sparepart Khusus (Potong Sewa)">Sparepart Khusus (Potong Sewa)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300">
+          Menyimpan riwayat servis otomatis mengubah status reminder motor menjadi <strong>Aman</strong> dan menghitung jadwal servis berikutnya.
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeServiceModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition">Simpan & Reset Jadwal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SETTINGS: URL APPS SCRIPT -->
+  <div id="modalSettings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-amber-400"></i>
+          <span>Pengaturan Koneksi Google Apps Script</span>
+        </h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
+        <div>
+          <label class="block font-medium text-slate-400 mb-1">Web App URL (Apps Script /exec)</label>
+          <input type="url" id="settingApiUrl" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 font-mono text-xs focus:border-amber-500 focus:outline-none" />
+          <p class="text-[11px] text-slate-500 mt-1">URL ini menghubungkan Web Dashboard dengan Google Sheets & Bot Telegram.</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Tutup</button>
+          <button type="button" onclick="saveSettings()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">Simpan URL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AREA PRINTABLE RESMI A4 UNTUK CETAK LAPORAN PDF -->
+  <div id="printableArea" class="hidden">
+    <div class="kop-header">
+      <h1 class="kop-title">YAYASAN BAKTI SOSIAL INDONESIA</h1>
+      <p class="kop-sub">Kantor Operasional Baksos & Logistik Armada Motor</p>
+      <p class="kop-sub">Jl. Operasional Baksos No. 12, Jakarta Timur | Telp: (021) 8590-1234 | Email: armada@baktisosial.or.id</p>
+      <div class="report-title">LAPORAN REKAPITULASI MASTER ARMADA & RIWAYAT SERVICE MOTOR</div>
+      <p style="font-size: 8.5pt; margin-top: 3px;">Periode Cetak: <span id="printDate" style="font-weight: bold;"></span></p>
+    </div>
+
+    <div class="section-heading">I. RINGKASAN EKSEKUTIF ARMADA & FINANSIAL</div>
+    <div class="summary-box">
+      <div><strong>Total Armada Motor:</strong> <span id="printTotalArmada">0</span> Unit</div>
+      <div><strong>Motor Milik Yayasan:</strong> <span id="printMotorYayasan">0</span> Unit</div>
+      <div><strong>Motor Sewaan:</strong> <span id="printMotorSewaan">0</span> Unit</div>
+      <div><strong>Total Biaya Service:</strong> <span id="printTotalBiaya">Rp 0</span></div>
+      <div><strong>Total Potongan Sewa:</strong> <span id="printTotalPotongan">Rp 0</span></div>
+      <div><strong>Total Tindakan Servis:</strong> <span id="printTotalServisCount">0</span> Kali</div>
+    </div>
+
+    <div class="section-heading">II. DATA MASTER ARMADA MOTOR YAYASAN</div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th style="width: 25px;">No</th>
+          <th>Nama / Jenis Motor</th>
+          <th style="width: 65px;">Kategori</th>
+          <th style="width: 85px;">Plat Nomor</th>
+          <th>Penanggung Jawab</th>
+          <th style="width: 85px;">Jadwal Next</th>
+          <th>Kondisi & Keterangan</th>
+        </tr>
+      </thead>
+      <tbody id="printArmadaBody"></tbody>
+    </table>
+
+    <div class="section-heading">III. RIWAYAT PERAWATAN & SERVICE MOTOR</div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th style="width: 25px;">No</th>
+          <th style="width: 75px;">Tanggal</th>
+          <th>Motor & Plat</th>
+          <th>Jenis Service / Sparepart</th>
+          <th>Bengkel</th>
+          <th style="width: 95px; text-align: right;">Biaya (Rp)</th>
+          <th style="width: 140px;">Kategori Pemotongan</th>
+        </tr>
+      </thead>
+      <tbody id="printServiceBody"></tbody>
+    </table>
+
+    <div class="section-heading">IV. REKAPITULASI PEMOTONGAN BIAYA SEWA MOTOR SEWAAN</div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th style="width: 25px;">No</th>
+          <th>Nama Motor Sewaan</th>
+          <th style="width: 90px;">Plat Nomor</th>
+          <th>Penanggung Jawab</th>
+          <th style="width: 130px; text-align: right;">Total Potongan Biaya (Rp)</th>
+        </tr>
+      </thead>
+      <tbody id="printRekapBody"></tbody>
+    </table>
+
+    <div style="margin-top: 30px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+      <div style="text-align: center; width: 200px;">
+        <p style="margin: 0; font-size: 9pt;">Mengetahui,</p>
+        <p style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Koordinator Armada Baksos</p>
+        <div style="height: 50px;"></div>
+        <p style="margin: 0; font-weight: bold; font-size: 9pt; border-top: 1px solid #000; display: inline-block; width: 100%;">( ______________________ )</p>
+      </div>
+      <div style="text-align: center; width: 220px;">
+        <p style="margin: 0; font-size: 9pt;">Jakarta, <span id="printDateSign"></span></p>
+        <p style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Pengurus Yayasan Bakti Sosial</p>
+        <div style="height: 50px;"></div>
+        <p style="margin: 0; font-weight: bold; font-size: 9pt; border-top: 1px solid #000; display: inline-block; width: 100%;">( ______________________ )</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbwnBxuJ2FLqTOgfKKAGrbrCskR6xmtcEmHiSJqHoWStDBlLQ9sdi04QggTB5sLbD8mjXQ/exec";
+    let API_URL = localStorage.getItem("yayasan_motor_api_url") || DEFAULT_API_URL;
+
+    let armadaList = [];
+    let serviceList = [];
+    let currentTab = 'armada';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedArmada = localStorage.getItem("yayasan_armada_list");
+      const savedService = localStorage.getItem("yayasan_service_list");
+      if (savedArmada) armadaList = JSON.parse(savedArmada);
+      if (savedService) serviceList = JSON.parse(savedService);
+
+      lucide.createIcons();
+      updateDashboardStats();
+      renderCurrentTab();
+      fetchFromCloud(false);
+    });
+
+    function showToast(msg, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      const colors = {
+        success: "bg-emerald-950/90 border-emerald-500/40 text-emerald-200",
+        error: "bg-rose-950/90 border-rose-500/40 text-rose-200",
+        info: "bg-slate-900/95 border-amber-500/40 text-slate-100"
+      };
+      toast.className = `px-4 py-2.5 rounded-xl border text-xs font-medium shadow-xl backdrop-blur transition-all ${colors[type] || colors.info}`;
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+
+    function setSyncStatus(state, label) {
+      const badge = document.getElementById("syncBadge");
+      const text = document.getElementById("syncText");
+      text.innerText = label;
+      if (state === "loading") {
+        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+      } else if (state === "error") {
+        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+      } else {
+        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+      }
+    }
+
+    // AMBIL DATA DARI GOOGLE SHEETS
+    async function fetchFromCloud(notify = false) {
+      if (!API_URL) return;
+      const icon = document.getElementById("refreshIcon");
+      if (icon) icon.classList.add("animate-spin");
+      setSyncStatus("loading", "Syncing...");
+
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (data.status === "success") {
+          armadaList = data.armada || [];
+          serviceList = (data.service || []).reverse();
+          localStorage.setItem("yayasan_armada_list", JSON.stringify(armadaList));
+          localStorage.setItem("yayasan_service_list", JSON.stringify(serviceList));
+          updateDashboardStats();
+          renderCurrentTab();
+          setSyncStatus("ok", "Cloud Sync");
+          if (notify) showToast("Data berhasil disinkronkan dengan Google Sheets!", "success");
+        }
+      } catch (err) {
+        console.error(err);
+        setSyncStatus("error", "Offline Cache");
+        if (notify) showToast("Gagal terhubung ke server, menampilkan cache lokal.", "error");
+      } finally {
+        if (icon) icon.classList.remove("animate-spin");
+      }
+    }
+
+    // KIRIM PERUBAHAN KE GOOGLE SHEETS
+    async function postToCloud(payload) {
+      if (!API_URL) return;
+      setSyncStatus("loading", "Menyimpan...");
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        setTimeout(() => fetchFromCloud(false), 1200);
+      } catch (err) {
+        console.error(err);
+        setSyncStatus("error", "Gagal Sync");
+        showToast("Gagal mengirim perubahan ke Google Sheets.", "error");
+      }
+    }
+
+    function saveLocalCache() {
+      localStorage.setItem("yayasan_armada_list", JSON.stringify(armadaList));
+      localStorage.setItem("yayasan_service_list", JSON.stringify(serviceList));
+      updateDashboardStats();
+    }
+
+    // STATISTIK DASHBOARD
+    function updateDashboardStats() {
+      const totalArmada = armadaList.length;
+      const totalYayasan = armadaList.filter(a => a.kategori === 'Yayasan').length;
+      const totalSewaan = armadaList.filter(a => a.kategori === 'Sewaan').length;
+
+      const menungguCount = armadaList.filter(a => a.status === 'Menunggu Konfirmasi').length;
+      const siapServisCount = armadaList.filter(a => a.status === 'Siap Servis').length;
+
+      const totalBiayaService = serviceList.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+      const totalPotonganSewa = serviceList.reduce((acc, curr) => {
+        return curr.catatan === "Sparepart Khusus (Potong Sewa)" ? acc + (Number(curr.biaya) || 0) : acc;
+      }, 0);
+
+      document.getElementById("stat-total-armada").innerText = totalArmada;
+      document.getElementById("stat-motor-yayasan").innerText = totalYayasan;
+      document.getElementById("stat-motor-sewaan").innerText = totalSewaan;
+      document.getElementById("stat-perlu-servis").innerText = (menungguCount + siapServisCount) + " Unit";
+      document.getElementById("stat-menunggu").innerText = menungguCount;
+      document.getElementById("stat-siap-servis").innerText = siapServisCount;
+      document.getElementById("stat-total-biaya").innerText = formatRupiah(totalBiayaService);
+      document.getElementById("stat-potongan-sewa").innerText = formatRupiah(totalPotonganSewa);
+      document.getElementById("stat-jumlah-service").innerText = serviceList.length + " kali";
+    }
+
+    // SWAPPING TABS
+    function switchTab(tab) {
+      currentTab = tab;
+      const btnArmada = document.getElementById("tab-btn-armada");
+      const btnService = document.getElementById("tab-btn-service");
+      const btnRekap = document.getElementById("tab-btn-rekap");
+      const cntArmada = document.getElementById("tab-content-armada");
+      const cntService = document.getElementById("tab-content-service");
+      const cntRekap = document.getElementById("tab-content-rekap");
+
+      [btnArmada, btnService, btnRekap].forEach(b => {
+        b.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200";
+      });
+      [cntArmada, cntService, cntRekap].forEach(c => c.classList.add("hidden"));
+
+      if (tab === 'armada') {
+        btnArmada.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-amber-500 shadow";
+        cntArmada.classList.remove("hidden");
+      } else if (tab === 'service') {
+        btnService.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-cyan-500 shadow";
+        cntService.classList.remove("hidden");
+      } else if (tab === 'rekap') {
+        btnRekap.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-emerald-500 shadow";
+        cntRekap.classList.remove("hidden");
+      }
+      renderCurrentTab();
+    }
+
+    function renderCurrentTab() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      if (currentTab === 'armada') renderArmadaTable(q);
+      else if (currentTab === 'service') renderServiceTable(q);
+      else if (currentTab === 'rekap') renderRekapTable(q);
+    }
+
+    // RENDER ARMADA TABLE
+    function renderArmadaTable(query = "") {
+      const tbody = document.getElementById("armadaTableBody");
+      const empty = document.getElementById("emptyArmada");
+      tbody.innerHTML = "";
+
+      const filtered = armadaList.filter(item =>
+        (item.nama || "").toLowerCase().includes(query) ||
+        (item.plat || "").toLowerCase().includes(query) ||
+        (item.pengguna || "").toLowerCase().includes(query) ||
+        (item.kategori || "").toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      filtered.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-800/40 transition";
+        const isYayasan = item.kategori === 'Yayasan';
+        const status = item.status || "Aman";
+
+        let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">🟢 Aman</span>`;
+        if (status === "Menunggu Konfirmasi") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">🟡 Menunggu Konfirmasi</span>`;
+        } else if (status === "Siap Servis") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30">🔵 Siap Servis</span>`;
+        }
+
+        const confirmBtn = status === "Menunggu Konfirmasi"
+          ? `<button onclick="confirmSiapServisWeb('${item.id}')" class="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded transition" title="Konfirmasi Siap Servis"><i data-lucide="check-circle-2" class="w-4 h-4"></i></button>`
+          : "";
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-100">${item.nama}</div>
+            <div class="font-mono text-xs text-amber-400">${item.plat}</div>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${isYayasan ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}">
+              ${item.kategori}
+            </span>
+          </td>
+          <td class="py-3 px-4">
+            <div class="text-slate-200">${item.pengguna}</div>
+            <div class="text-[11px] text-slate-500">${item.keterangan || "-"}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-mono text-xs text-slate-200">Next: <strong class="text-amber-300">${item.jadwalBerikutnya || "-"}</strong></div>
+            <div class="text-[11px] text-slate-500">Terakhir: ${item.servisTerakhir || "-"} (${item.interval || 60} hr)</div>
+          </td>
+          <td class="py-3 px-4 text-center">${statusBadge}</td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1">
+              ${confirmBtn}
+              <button onclick="sendTestReminder('${item.id}', '${item.nama}')" class="p-1.5 text-sky-400 hover:bg-sky-500/10 rounded transition" title="Kirim Test Reminder ke Telegram">
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+              <button onclick="editMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-amber-400 rounded transition" title="Edit Data">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded transition" title="Hapus Data">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    // RENDER SERVICE TABLE
+    function renderServiceTable(query = "") {
+      const tbody = document.getElementById("serviceTableBody");
+      const empty = document.getElementById("emptyService");
+      tbody.innerHTML = "";
+
+      const filtered = serviceList.filter(item =>
+        (item.namaMotor || "").toLowerCase().includes(query) ||
+        (item.plat || "").toLowerCase().includes(query) ||
+        (item.jenis || "").toLowerCase().includes(query) ||
+        (item.bengkel || "").toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      filtered.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-800/40 transition";
+        const isPotongSewa = item.catatan === "Sparepart Khusus (Potong Sewa)";
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">${item.tgl}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-100">${item.namaMotor}</div>
+            <div class="font-mono text-xs text-amber-400">${item.plat}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-200">${item.jenis}</td>
+          <td class="py-3 px-4 text-slate-300">${item.bengkel}</td>
+          <td class="py-3 px-4 text-right font-mono font-bold text-cyan-400">${formatRupiah(item.biaya)}</td>
+          <td class="py-3 px-4 text-center">
+            <span class="px-2 py-0.5 rounded text-xs font-medium ${isPotongSewa ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+              ${item.catatan}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="deleteService('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 transition" title="Hapus Riwayat">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    // RENDER REKAP POTONGAN SEWA TABLE
+    function renderRekapTable(query = "") {
+      const tbody = document.getElementById("rekapTableBody");
+      const empty = document.getElementById("emptyRekap");
+      tbody.innerHTML = "";
+
+      const motorSewaanList = armadaList.filter(a => a.kategori === 'Sewaan');
+      const filtered = motorSewaanList.filter(item =>
+        (item.nama || "").toLowerCase().includes(query) ||
+        (item.plat || "").toLowerCase().includes(query) ||
+        (item.pengguna || "").toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      filtered.forEach((item, idx) => {
+        const serviceMotor = serviceList.filter(s => (s.motorId === item.id || s.plat === item.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+        const totalPotongan = serviceMotor.reduce((sum, s) => sum + (Number(s.biaya) || 0), 0);
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-800/40 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
+          <td class="py-3 px-4 font-bold text-slate-100">${item.nama}</td>
+          <td class="py-3 px-4 font-mono font-bold text-amber-400">${item.plat}</td>
+          <td class="py-3 px-4 text-slate-300">${item.pengguna}</td>
+          <td class="py-3 px-4 text-center font-mono text-xs text-slate-400">${serviceMotor.length} Kali Klaim</td>
+          <td class="py-3 px-4 text-right font-mono font-bold text-emerald-400 text-sm">${formatRupiah(totalPotongan)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    // AKSI TELEGRAM & REMINDER DARI WEB
+    function sendTestReminder(id, nama) {
+      showToast(`Mengirim test reminder ${nama} ke Telegram...`, "info");
+      postToCloud({ apiAction: "testReminder", id: id });
+    }
+
+    function confirmSiapServisWeb(id) {
+      const idx = armadaList.findIndex(a => a.id === id);
+      if (idx !== -1) {
+        armadaList[idx].status = "Siap Servis";
+        saveLocalCache();
+        renderCurrentTab();
+        showToast("Status diubah ke Siap Servis & notif dikirim ke Telegram.", "success");
+        postToCloud({ apiAction: "confirmMotorWeb", id: id });
+      }
+    }
+
+    // MODAL MOTOR HANDLERS
+    function recalcNextServiceInput() {
+      const lastStr = document.getElementById("motorServisTerakhir").value;
+      const interval = Number(document.getElementById("motorInterval").value) || 60;
+      if (!lastStr) return;
+      const lastDate = new Date(lastStr);
+      const nextDate = new Date(lastDate.getTime() + interval * 24 * 60 * 60 * 1000);
+      document.getElementById("motorJadwalNext").value = nextDate.toISOString().split('T')[0];
+    }
+
+    function openMotorModal() {
+      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="bike" class="w-4 h-4 text-amber-400"></i><span>Tambah Data Motor Armada</span>`;
+      document.getElementById("formMotor").reset();
+      document.getElementById("motorEditId").value = "";
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById("motorServisTerakhir").value = todayStr;
+      recalcNextServiceInput();
+      document.getElementById("modalMotor").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function closeMotorModal() {
+      document.getElementById("modalMotor").classList.add("hidden");
+    }
+
+    function saveMotorData(e) {
+      e.preventDefault();
+      const editId = document.getElementById("motorEditId").value;
+      const platInput = document.getElementById("motorPlat").value.trim().toUpperCase();
+
+      if (!editId) {
+        const exist = armadaList.find(a => a.plat.toUpperCase() === platInput);
+        if (exist) {
+          alert(`Peringatan: Plat Nomor ${platInput} sudah terdaftar pada sistem!`);
+          return;
+        }
+      }
+
+      const motorObj = {
+        id: editId ? editId : "arm_" + Date.now(),
+        nama: document.getElementById("motorNama").value.trim(),
+        kategori: document.getElementById("motorKategori").value,
+        plat: platInput,
+        pengguna: document.getElementById("motorPengguna").value.trim(),
+        interval: Number(document.getElementById("motorInterval").value) || 60,
+        servisTerakhir: document.getElementById("motorServisTerakhir").value,
+        jadwalBerikutnya: document.getElementById("motorJadwalNext").value,
+        status: document.getElementById("motorStatus").value,
+        keterangan: document.getElementById("motorKeterangan").value.trim()
+      };
+
+      if (editId) {
+        const idx = armadaList.findIndex(a => a.id === editId);
+        if (idx !== -1) armadaList[idx] = motorObj;
+      } else {
+        armadaList.push(motorObj);
+      }
+
+      saveLocalCache();
+      closeMotorModal();
+      renderCurrentTab();
+      showToast("Menyimpan data motor ke Google Sheets...", "info");
+      postToCloud({ apiAction: "saveMotor", motor: motorObj });
+    }
+
+    function editMotor(id) {
+      const item = armadaList.find(a => a.id === id);
+      if (!item) return;
+
+      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i><span>Edit Data Motor</span>`;
+      document.getElementById("motorEditId").value = item.id;
+      document.getElementById("motorNama").value = item.nama;
+      document.getElementById("motorKategori").value = item.kategori;
+      document.getElementById("motorPlat").value = item.plat;
+      document.getElementById("motorPengguna").value = item.pengguna;
+      document.getElementById("motorInterval").value = item.interval || 60;
+      document.getElementById("motorServisTerakhir").value = item.servisTerakhir || "";
+      document.getElementById("motorJadwalNext").value = item.jadwalBerikutnya || "";
+      document.getElementById("motorStatus").value = item.status || "Aman";
+      document.getElementById("motorKeterangan").value = item.keterangan || "";
+
+      document.getElementById("modalMotor").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function deleteMotor(id) {
+      if (confirm("Apakah Anda yakin ingin menghapus data motor armada ini?")) {
+        armadaList = armadaList.filter(a => a.id !== id);
+        saveLocalCache();
+        renderCurrentTab();
+        showToast("Menghapus data motor...", "info");
+        postToCloud({ apiAction: "deleteMotor", id: id });
+      }
+    }
+
+    // MODAL SERVICE HANDLERS
+    function openServiceModal() {
+      if (armadaList.length === 0) {
+        alert("Silakan masukkan minimal 1 data motor armada terlebih dahulu.");
+        return;
+      }
+      const select = document.getElementById("serviceMotorSelect");
+      select.innerHTML = "";
+      armadaList.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.innerText = `${m.nama} - ${m.plat} (${m.kategori})`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById("formService").reset();
+      document.getElementById("serviceTgl").value = new Date().toISOString().split('T')[0];
+      document.getElementById("modalService").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function closeServiceModal() {
+      document.getElementById("modalService").classList.add("hidden");
+    }
+
+    function saveServiceData(e) {
+      e.preventDefault();
+      const motorId = document.getElementById("serviceMotorSelect").value;
+      const motor = armadaList.find(m => m.id === motorId);
+      if (!motor) return;
+
+      const tglServis = document.getElementById("serviceTgl").value;
+      const serviceObj = {
+        id: "srv_" + Date.now(),
+        motorId: motor.id,
+        namaMotor: motor.nama,
+        plat: motor.plat,
+        tgl: tglServis,
+        jenis: document.getElementById("serviceJenis").value.trim(),
+        bengkel: document.getElementById("serviceBengkel").value.trim(),
+        biaya: Number(document.getElementById("serviceBiaya").value) || 0,
+        catatan: document.getElementById("serviceCatatan").value
+      };
+
+      // Update status lokal langsung
+      const interval = Number(motor.interval) || 60;
+      const nextDate = new Date(new Date(tglServis).getTime() + interval * 24 * 60 * 60 * 1000);
+      motor.servisTerakhir = tglServis;
+      motor.jadwalBerikutnya = nextDate.toISOString().split('T')[0];
+      motor.status = "Aman";
+
+      serviceList.unshift(serviceObj);
+      saveLocalCache();
+      closeServiceModal();
+      renderCurrentTab();
+      showToast("Riwayat servis disimpan & jadwal berikutnya di-reset!", "success");
+      postToCloud({ apiAction: "saveService", service: serviceObj });
+    }
+
+    function deleteService(id) {
+      if (confirm("Hapus catatan servis ini?")) {
+        serviceList = serviceList.filter(s => s.id !== id);
+        saveLocalCache();
+        renderCurrentTab();
+        postToCloud({ apiAction: "deleteService", id: id });
+      }
+    }
+
+    // SETTINGS MODAL
+    function openSettingsModal() {
+      document.getElementById("settingApiUrl").value = API_URL;
+      document.getElementById("modalSettings").classList.remove("hidden");
+    }
+    function closeSettingsModal() {
+      document.getElementById("modalSettings").classList.add("hidden");
+    }
+    function saveSettings() {
+      const url = document.getElementById("settingApiUrl").value.trim();
+      if (url) {
+        API_URL = url;
+        localStorage.setItem("yayasan_motor_api_url", url);
+        closeSettingsModal();
+        fetchFromCloud(true);
+      }
+    }
+
+    // EXPORT CSV
+    function exportAllCSV() {
+      let csv = "\uFEFF";
+      csv += "=== DATA MASTER ARMADA MOTOR YAYASAN ===\n";
+      csv += "No,Nama Motor,Kategori,Plat Nomor,Penanggung Jawab,Servis Terakhir,Jadwal Berikutnya,Status Reminder,Keterangan Kondisi\n";
+      armadaList.forEach((m, i) => {
+        csv += `"${i+1}","${m.nama}","${m.kategori}","${m.plat}","${m.pengguna}","${m.servisTerakhir || ''}","${m.jadwalBerikutnya || ''}","${m.status || 'Aman'}","${m.keterangan || ''}"\n`;
+      });
+
+      csv += "\n=== RIWAYAT SERVICE & MAINTENANCE MOTOR ===\n";
+      csv += "No,Tanggal,Nama Motor,Plat Nomor,Jenis Service,Bengkel,Biaya (Rp),Kategori Pemotongan\n";
+      serviceList.forEach((s, i) => {
+        csv += `"${i+1}","${s.tgl}","${s.namaMotor}","${s.plat}","${s.jenis}","${s.bengkel}","${s.biaya}","${s.catatan}"\n`;
+      });
+
+      csv += "\n=== REKAPITULASI POTONGAN BIAYA SEWA MOTOR ===\n";
+      csv += "No,Nama Motor Sewaan,Plat Nomor,Penanggung Jawab,Total Potongan Biaya Sewa (Rp)\n";
+      armadaList.filter(a => a.kategori === 'Sewaan').forEach((m, i) => {
+        const claimServices = serviceList.filter(s => (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+        const totalClaim = claimServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+        csv += `"${i+1}","${m.nama}","${m.plat}","${m.pengguna}","${totalClaim}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Laporan_Motor_Baksos_Yayasan_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // PRINT REPORT A4
+    function triggerPrintReport() {
+      const todayStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('printDate').innerText = todayStr;
+      document.getElementById('printDateSign').innerText = todayStr;
+
+      const totalArmada = armadaList.length;
+      const totalYayasan = armadaList.filter(a => a.kategori === 'Yayasan').length;
+      const totalSewaan = armadaList.filter(a => a.kategori === 'Sewaan').length;
+      const totalBiayaService = serviceList.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+      const totalPotonganSewa = serviceList.reduce((acc, curr) => {
+        return curr.catatan === "Sparepart Khusus (Potong Sewa)" ? acc + (Number(curr.biaya) || 0) : acc;
+      }, 0);
+
+      document.getElementById('printTotalArmada').innerText = totalArmada;
+      document.getElementById('printMotorYayasan').innerText = totalYayasan;
+      document.getElementById('printMotorSewaan').innerText = totalSewaan;
+      document.getElementById('printTotalBiaya').innerText = formatRupiah(totalBiayaService);
+      document.getElementById('printTotalPotongan').innerText = formatRupiah(totalPotonganSewa);
+      document.getElementById('printTotalServisCount').innerText = serviceList.length;
+
+      const printArmadaBody = document.getElementById('printArmadaBody');
+      printArmadaBody.innerHTML = armadaList.length === 0
+        ? '<tr><td colspan="7" style="text-align:center;">Tidak ada data armada motor.</td></tr>'
+        : armadaList.map((m, idx) => `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td style="font-weight: bold;">${m.nama}</td>
+            <td style="text-align: center;">${m.kategori}</td>
+            <td style="text-align: center; font-family: monospace; font-weight: bold;">${m.plat}</td>
+            <td>${m.pengguna}</td>
+            <td style="text-align: center; font-family: monospace;">${m.jadwalBerikutnya || '-'}</td>
+            <td>${m.keterangan || '-'}</td>
+          </tr>`).join('');
+
+      const printServiceBody = document.getElementById('printServiceBody');
+      printServiceBody.innerHTML = serviceList.length === 0
+        ? '<tr><td colspan="7" style="text-align:center;">Belum ada riwayat service motor.</td></tr>'
+        : serviceList.map((s, idx) => `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td style="text-align: center; font-family: monospace;">${s.tgl}</td>
+            <td style="font-weight: bold;">${s.namaMotor} (${s.plat})</td>
+            <td>${s.jenis}</td>
+            <td>${s.bengkel}</td>
+            <td style="text-align: right; font-family: monospace; font-weight: bold;">${formatRupiah(s.biaya)}</td>
+            <td>${s.catatan}</td>
+          </tr>`).join('');
+
+      const printRekapBody = document.getElementById('printRekapBody');
+      const motorSewaanList = armadaList.filter(a => a.kategori === 'Sewaan');
+      printRekapBody.innerHTML = motorSewaanList.length === 0
+        ? '<tr><td colspan="5" style="text-align:center;">Tidak ada motor sewaan.</td></tr>'
+        : motorSewaanList.map((m, idx) => {
+          const claimServices = serviceList.filter(s => (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+          const totalClaim = claimServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+          return `
+            <tr>
+              <td style="text-align: center;">${idx + 1}</td>
+              <td style="font-weight: bold;">${m.nama}</td>
+              <td style="text-align: center; font-family: monospace;">${m.plat}</td>
+              <td>${m.pengguna}</td>
+              <td style="text-align: right; font-family: monospace; font-weight: bold;">${formatRupiah(totalClaim)}</td>
+            </tr>`;
+        }).join('');
+
+      requestAnimationFrame(() => { setTimeout(() => { window.print(); }, 100); });
+    }
+
+    function formatRupiah(angka) {
+      return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(angka || 0);
+    }
+  </script>
+</body>
+</html>
