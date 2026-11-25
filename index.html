@@ -271,7 +271,7 @@
         <button onclick="closeMotorModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <form id="formMotor" onsubmit="saveMotorData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
+      <form id="formMotor" onsubmit="saveMotorData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm max-h-[85vh] overflow-y-auto">
         <input type="hidden" id="motorEditId" value="" />
 
         <div>
@@ -300,13 +300,25 @@
           </div>
           <div>
             <label class="block font-medium text-slate-400 mb-1">Siklus Servis Rutin *</label>
-            <select id="motorInterval" onchange="recalcNextServiceInput()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+            <select id="motorIntervalPreset" onchange="handleIntervalPresetChange()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+              <option value="14">Setiap 2 Minggu (14 Hari)</option>
+              <option value="21">Setiap 3 Minggu (21 Hari)</option>
               <option value="30">Setiap 1 Bulan (30 Hari)</option>
               <option value="60" selected>Setiap 2 Bulan (60 Hari)</option>
               <option value="90">Setiap 3 Bulan (90 Hari)</option>
-              <option value="120">Setiap 4 Bulan (120 Hari)</option>
+              <option value="custom">Custom (Isi Jumlah Hari...)</option>
             </select>
           </div>
+        </div>
+
+        <!-- INPUT CUSTOM HARI (MUNCUL JIKA DIPILIH CUSTOM) -->
+        <div id="customIntervalWrapper" class="hidden bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
+          <label class="block font-medium text-amber-300 mb-1">Masukkan Interval Custom (dalam Hari) *</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="motorIntervalCustom" min="1" max="365" value="21" oninput="recalcNextServiceInput()" placeholder="Contoh: 21" class="w-full bg-slate-950 border border-slate-700 text-slate-100 font-mono rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+            <span class="text-slate-400 font-semibold whitespace-nowrap">Hari sekali</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Misal: 21 untuk 3 minggu sekali, 45 untuk 1,5 bulan sekali.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -391,7 +403,7 @@
         </div>
 
         <div class="p-3 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300">
-          Menyimpan riwayat servis otomatis mengubah status reminder motor menjadi <strong>Aman</strong> dan menghitung jadwal servis berikutnya.
+          Menyimpan riwayat servis otomatis mengubah status reminder motor menjadi <strong>Aman</strong> dan menghitung jadwal servis berikutnya sesuai interval motor tersebut.
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
@@ -670,6 +682,13 @@
       else if (currentTab === 'rekap') renderRekapTable(q);
     }
 
+    function formatIntervalLabel(days) {
+      const d = Number(days) || 60;
+      if (d % 7 === 0 && d < 30) return `Per ${d / 7} Minggu (${d} hr)`;
+      if (d % 30 === 0) return `Per ${d / 30} Bulan (${d} hr)`;
+      return `Per ${d} Hari`;
+    }
+
     // RENDER ARMADA TABLE
     function renderArmadaTable(query = "") {
       const tbody = document.getElementById("armadaTableBody");
@@ -723,7 +742,7 @@
           </td>
           <td class="py-3 px-4">
             <div class="font-mono text-xs text-slate-200">Next: <strong class="text-amber-300">${item.jadwalBerikutnya || "-"}</strong></div>
-            <div class="text-[11px] text-slate-500">Terakhir: ${item.servisTerakhir || "-"} (${item.interval || 60} hr)</div>
+            <div class="text-[11px] text-slate-500">Last: ${item.servisTerakhir || "-"} • <span class="text-slate-400">${formatIntervalLabel(item.interval)}</span></div>
           </td>
           <td class="py-3 px-4 text-center">${statusBadge}</td>
           <td class="py-3 px-4 text-center">
@@ -851,10 +870,30 @@
       }
     }
 
-    // MODAL MOTOR HANDLERS
+    // LOGIKA SIKLUS SERVIS PRESET & CUSTOM HARI
+    function getSelectedIntervalDays() {
+      const preset = document.getElementById("motorIntervalPreset").value;
+      if (preset === "custom") {
+        return Math.max(1, Number(document.getElementById("motorIntervalCustom").value) || 21);
+      }
+      return Number(preset) || 60;
+    }
+
+    function handleIntervalPresetChange() {
+      const preset = document.getElementById("motorIntervalPreset").value;
+      const customWrap = document.getElementById("customIntervalWrapper");
+      if (preset === "custom") {
+        customWrap.classList.remove("hidden");
+        document.getElementById("motorIntervalCustom").focus();
+      } else {
+        customWrap.classList.add("hidden");
+      }
+      recalcNextServiceInput();
+    }
+
     function recalcNextServiceInput() {
       const lastStr = document.getElementById("motorServisTerakhir").value;
-      const interval = Number(document.getElementById("motorInterval").value) || 60;
+      const interval = getSelectedIntervalDays();
       if (!lastStr) return;
       const lastDate = new Date(lastStr);
       const nextDate = new Date(lastDate.getTime() + interval * 24 * 60 * 60 * 1000);
@@ -865,6 +904,9 @@
       document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="bike" class="w-4 h-4 text-amber-400"></i><span>Tambah Data Motor Armada</span>`;
       document.getElementById("formMotor").reset();
       document.getElementById("motorEditId").value = "";
+      document.getElementById("motorIntervalPreset").value = "60";
+      document.getElementById("customIntervalWrapper").classList.add("hidden");
+
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById("motorServisTerakhir").value = todayStr;
       recalcNextServiceInput();
@@ -895,7 +937,7 @@
         kategori: document.getElementById("motorKategori").value,
         plat: platInput,
         pengguna: document.getElementById("motorPengguna").value.trim(),
-        interval: Number(document.getElementById("motorInterval").value) || 60,
+        interval: getSelectedIntervalDays(),
         servisTerakhir: document.getElementById("motorServisTerakhir").value,
         jadwalBerikutnya: document.getElementById("motorJadwalNext").value,
         status: document.getElementById("motorStatus").value,
@@ -926,7 +968,18 @@
       document.getElementById("motorKategori").value = item.kategori;
       document.getElementById("motorPlat").value = item.plat;
       document.getElementById("motorPengguna").value = item.pengguna;
-      document.getElementById("motorInterval").value = item.interval || 60;
+
+      const intervalVal = String(item.interval || 60);
+      const presetOptions = ["14", "21", "30", "60", "90"];
+      if (presetOptions.includes(intervalVal)) {
+        document.getElementById("motorIntervalPreset").value = intervalVal;
+        document.getElementById("customIntervalWrapper").classList.add("hidden");
+      } else {
+        document.getElementById("motorIntervalPreset").value = "custom";
+        document.getElementById("motorIntervalCustom").value = intervalVal;
+        document.getElementById("customIntervalWrapper").classList.remove("hidden");
+      }
+
       document.getElementById("motorServisTerakhir").value = item.servisTerakhir || "";
       document.getElementById("motorJadwalNext").value = item.jadwalBerikutnya || "";
       document.getElementById("motorStatus").value = item.status || "Aman";
@@ -990,7 +1043,6 @@
         catatan: document.getElementById("serviceCatatan").value
       };
 
-      // Update status lokal langsung
       const interval = Number(motor.interval) || 60;
       const nextDate = new Date(new Date(tglServis).getTime() + interval * 24 * 60 * 60 * 1000);
       motor.servisTerakhir = tglServis;
@@ -1036,9 +1088,9 @@
     function exportAllCSV() {
       let csv = "\uFEFF";
       csv += "=== DATA MASTER ARMADA MOTOR YAYASAN ===\n";
-      csv += "No,Nama Motor,Kategori,Plat Nomor,Penanggung Jawab,Servis Terakhir,Jadwal Berikutnya,Status Reminder,Keterangan Kondisi\n";
+      csv += "No,Nama Motor,Kategori,Plat Nomor,Penanggung Jawab,Interval (Hari),Servis Terakhir,Jadwal Berikutnya,Status Reminder,Keterangan Kondisi\n";
       armadaList.forEach((m, i) => {
-        csv += `"${i+1}","${m.nama}","${m.kategori}","${m.plat}","${m.pengguna}","${m.servisTerakhir || ''}","${m.jadwalBerikutnya || ''}","${m.status || 'Aman'}","${m.keterangan || ''}"\n`;
+        csv += `"${i+1}","${m.nama}","${m.kategori}","${m.plat}","${m.pengguna}","${m.interval || 60}","${m.servisTerakhir || ''}","${m.jadwalBerikutnya || ''}","${m.status || 'Aman'}","${m.keterangan || ''}"\n`;
       });
 
       csv += "\n=== RIWAYAT SERVICE & MAINTENANCE MOTOR ===\n";
