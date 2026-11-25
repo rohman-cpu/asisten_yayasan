@@ -539,6 +539,11 @@
       updateDashboardStats();
       renderCurrentTab();
       fetchFromCloud(false);
+
+      // Auto-sync setiap 10 detik saat tab aktif agar update dari Telegram otomatis tampil
+      setInterval(() => {
+        if (!document.hidden) fetchFromCloud(false);
+      }, 10000);
     });
 
     function showToast(msg, type = "info") {
@@ -572,7 +577,7 @@
     async function fetchFromCloud(notify = false) {
       if (!API_URL) return;
       const icon = document.getElementById("refreshIcon");
-      if (icon) icon.classList.add("animate-spin");
+      if (icon && notify) icon.classList.add("animate-spin");
       setSyncStatus("loading", "Syncing...");
 
       try {
