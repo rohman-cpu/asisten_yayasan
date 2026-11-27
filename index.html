@@ -1,36 +1,110 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistem Pendataan Motor Baksos - Yayasan Bakti Sosial Indonesia</title>
-  
+  <title>FleetOS — Sistem Pendataan & Reminder Armada Motor</title>
+
+  <!-- Soft Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Inter"', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#010101',
+            cyber: {
+              orange: '#f7931e',
+              cyan: '#06b6d4',
+              darkpanel: '#0a0d14',
+              darkcard: '#0f131d'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    html.dark body {
+      background-color: #010101;
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(247, 147, 30, 0.07) 0%, transparent 38%),
+        radial-gradient(circle at 90% 12%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+      color: #f1f5f9;
+    }
+
+    html:not(.dark) body {
+      background-color: #f4f6fa;
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(247, 147, 30, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+      color: #0f172a;
+    }
+
+    .surface-panel {
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    html.dark .surface-panel {
+      background: rgba(12, 16, 25, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    html:not(.dark) .surface-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
+    }
+
+    .num-tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #090d16; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    html.dark ::-webkit-scrollbar-track { background: #010101; }
+    html.dark ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    html:not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
+    html:not(.dark) ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f7931e; }
 
     /* CSS CETAK / PDF PRINT PREVIEW FORM-A4 */
     @media print {
       @page { size: A4 portrait; margin: 12mm 10mm; }
       body {
-        background-color: #ffffff !important;
+        background: #ffffff !important;
+        background-image: none !important;
         color: #000000 !important;
-        font-family: 'Times New Roman', Times, serif, sans-serif !important;
+        font-family: 'Times New Roman', Times, serif !important;
         font-size: 10pt !important;
-        line-height: 1.3 !important;
+        line-height: 1.35 !important;
         margin: 0 !important;
         padding: 0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      header, main, footer, .no-print, #modalMotor, #modalService, #modalSettings, #toastContainer {
+      aside, header, main, footer, .no-print, #modalMotor, #modalService, #modalSettings, #toastContainer, #mobileBackdrop {
         display: none !important;
       }
       #printableArea {
@@ -43,264 +117,388 @@
         color: #000000 !important;
       }
       .kop-header { border-bottom: 3px double #000000; padding-bottom: 8px; margin-bottom: 12px; text-align: center; }
-      .kop-title { font-size: 16pt; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
+      .kop-title { font-size: 15pt; font-weight: bold; letter-spacing: 0.8px; text-transform: uppercase; margin: 0; }
       .kop-sub { font-size: 9pt; margin-top: 2px; }
-      .report-title { font-size: 12pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 10px; margin-bottom: 2px; }
+      .report-title { font-size: 11.5pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 10px; margin-bottom: 2px; }
       table.print-table { width: 100% !important; border-collapse: collapse !important; margin-top: 6px !important; margin-bottom: 14px !important; page-break-inside: auto; }
       table.print-table tr { page-break-inside: avoid; page-break-after: auto; }
-      table.print-table th, table.print-table td { border: 1px solid #000000 !important; padding: 5px 6px !important; font-size: 9pt !important; color: #000000 !important; }
+      table.print-table th, table.print-table td { border: 1px solid #000000 !important; padding: 5px 6px !important; font-size: 8.8pt !important; color: #000000 !important; }
       table.print-table th { background-color: #f1f5f9 !important; font-weight: bold !important; text-align: center !important; text-transform: uppercase !important; }
       .section-heading { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; border-bottom: 1px solid #000000; padding-bottom: 2px; }
       .summary-box { border: 1px solid #000000; padding: 8px; background-color: #fafafa !important; margin-bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 9pt; }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col lg:flex-row selection:bg-cyber-orange selection:text-black">
 
   <!-- TOAST NOTIFICATION -->
-  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 no-print"></div>
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2.5 no-print"></div>
 
-  <!-- HEADER NAVBAR (NO PRINT) -->
-  <header class="no-print border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 md:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-3 w-full md:w-auto">
-      <div class="p-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl shadow-inner">
-        <i data-lucide="bike" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-base sm:text-lg font-bold text-slate-100 tracking-wide">Pendataan Motor Baksos Yayasan</h1>
-          <span id="syncBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="syncText">Cloud Sync</span>
-          </span>
+  <!-- MOBILE SIDEBAR BACKDROP -->
+  <div id="mobileBackdrop" onclick="toggleMobileSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden lg:hidden no-print"></div>
+
+  <!-- LEFT ACTION SIDEBAR -->
+  <aside id="leftSidebar" class="no-print fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 flex flex-col justify-between border-r border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#07090f]/95 backdrop-blur-xl transition-all duration-300 -translate-x-full lg:translate-x-0">
+    
+    <!-- TOP: LOGO & TOGGLE RINGKAS -->
+    <div class="p-3.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <div class="p-2 rounded-xl bg-cyber-orange/15 border border-cyber-orange/30 text-cyber-orange shrink-0">
+          <i data-lucide="bike" class="w-5 h-5"></i>
         </div>
-        <p class="text-xs text-slate-400">Sistem Logistik, Pemeliharaan, Reminder Telegram & Potongan Sewa</p>
+        <div class="sidebar-label truncate">
+          <div id="sidebarBrandTitle" class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
+            Fleet<span class="text-cyber-orange">OS</span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Armada Baksos</div>
+        </div>
       </div>
-    </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
-      <button onclick="fetchFromCloud(true)" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Refresh Data dari Google Sheets">
-        <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4 text-sky-400"></i>
-        <span class="hidden lg:inline">Sync</span>
+      <button onclick="toggleSidebarCompact()" id="btnSidebarCompact" class="hidden lg:flex p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition" title="Ringkas / Lebarkan Panel Tombol">
+        <i data-lucide="panel-left-close" id="sidebarCompactIcon" class="w-4 h-4"></i>
       </button>
 
-      <button onclick="openMotorModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md shadow-amber-500/20">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-        <span>Tambah Motor</span>
-      </button>
-
-      <button onclick="openServiceModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md shadow-cyan-600/20">
-        <i data-lucide="wrench" class="w-4 h-4"></i>
-        <span>Catat Service</span>
-      </button>
-
-      <button onclick="exportAllCSV()" class="flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Export Semua Data ke CSV">
-        <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
-        <span class="hidden sm:inline">CSV</span>
-      </button>
-
-      <button onclick="triggerPrintReport()" class="flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium rounded-lg transition" title="Cetak Laporan Resmi A4 / PDF">
-        <i data-lucide="printer" class="w-4 h-4 text-amber-400"></i>
-        <span class="hidden sm:inline">Cetak</span>
-      </button>
-
-      <button onclick="openSettingsModal()" class="flex items-center justify-center p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg transition" title="Pengaturan Endpoint API">
-        <i data-lucide="settings" class="w-4 h-4 text-slate-300"></i>
+      <button onclick="toggleMobileSidebar(false)" class="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white">
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
-  </header>
 
-  <!-- MAIN DASHBOARD CONTENT (NO PRINT) -->
-  <main class="no-print p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 w-full flex-grow">
+    <!-- MIDDLE: CLASSIFIED ACTION BUTTONS -->
+    <div class="p-3 space-y-4 overflow-y-auto flex-grow">
 
-    <!-- EXECUTIVE STAT CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Total Armada Motor</span>
-          <i data-lucide="shield" class="w-5 h-5 text-amber-400"></i>
+      <!-- KLASIFIKASI 1: INPUT OPERASIONAL -->
+      <div id="group-operasional" class="space-y-1.5">
+        <div class="sidebar-label px-2 flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Operasional</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyber-orange"></span>
         </div>
-        <div class="text-2xl font-bold text-slate-100 font-mono" id="stat-total-armada">0</div>
-        <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
-          <span>Yayasan: <strong class="text-slate-300" id="stat-motor-yayasan">0</strong></span>
-          <span>Sewaan: <strong class="text-amber-400" id="stat-motor-sewaan">0</strong></span>
-        </div>
+
+        <button onclick="openMotorModal(); toggleMobileSidebar(false);" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-cyber-orange hover:bg-amber-400 text-black font-bold text-xs shadow-sm shadow-cyber-orange/25 transition" title="Tambah Motor Baru">
+          <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Tambah Motor</span>
+        </button>
+
+        <button onclick="openServiceModal(); toggleMobileSidebar(false);" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-cyber-cyan hover:bg-cyan-400 text-black font-bold text-xs shadow-sm shadow-cyber-cyan/25 transition" title="Catat Riwayat Service">
+          <i data-lucide="wrench" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Catat Service</span>
+        </button>
       </div>
 
-      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Status Reminder Servis</span>
-          <i data-lucide="bell-ring" class="w-5 h-5 text-rose-400"></i>
+      <!-- KLASIFIKASI 2: CLOUD & SINKRONISASI -->
+      <div id="group-sync" class="space-y-1.5 pt-2 border-t border-slate-200/70 dark:border-white/[0.07]">
+        <div class="sidebar-label px-2 flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Cloud & Sync</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
         </div>
-        <div class="text-2xl font-bold text-slate-100 font-mono" id="stat-perlu-servis">0 Unit</div>
-        <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
-          <span>Menunggu: <strong class="text-amber-400" id="stat-menunggu">0</strong></span>
-          <span>Siap Servis: <strong class="text-sky-400" id="stat-siap-servis">0</strong></span>
-        </div>
+
+        <button onclick="fetchFromCloud(true)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-sky-300 font-semibold text-xs transition" title="Sinkronisasi dengan Google Sheets">
+          <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4 shrink-0 text-sky-500 dark:text-sky-400"></i>
+          <span class="sidebar-label truncate">Sync Sheets</span>
+        </button>
+
+        <button onclick="openSettingsModal('api'); toggleMobileSidebar(false);" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 font-medium text-xs transition" title="Konfigurasi Endpoint & Auto-Sync">
+          <i data-lucide="radio" class="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400"></i>
+          <span class="sidebar-label truncate">Koneksi API</span>
+        </button>
       </div>
 
-      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Total Biaya Service</span>
-          <i data-lucide="wrench" class="w-5 h-5 text-cyan-400"></i>
+      <!-- KLASIFIKASI 3: LAPORAN & ARSIP -->
+      <div id="group-laporan" class="space-y-1.5 pt-2 border-t border-slate-200/70 dark:border-white/[0.07]">
+        <div class="sidebar-label px-2 flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Laporan & Data</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
         </div>
-        <div class="text-xl sm:text-2xl font-bold text-cyan-400 font-mono" id="stat-total-biaya">Rp 0</div>
-        <p class="text-xs text-slate-500 mt-1">Total <span id="stat-jumlah-service">0 kali</span> tindakan servis</p>
+
+        <button onclick="triggerPrintReport()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-amber-300 font-semibold text-xs transition" title="Cetak Laporan Resmi A4 / PDF">
+          <i data-lucide="printer" class="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400"></i>
+          <span class="sidebar-label truncate">Cetak A4 / PDF</span>
+        </button>
+
+        <button onclick="exportAllCSV()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-emerald-300 font-semibold text-xs transition" title="Export Semua Data ke CSV">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400"></i>
+          <span class="sidebar-label truncate">Export CSV</span>
+        </button>
       </div>
 
-      <div class="p-4 sm:p-5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Potongan Biaya Sewa</span>
-          <i data-lucide="scissors" class="w-5 h-5 text-emerald-400"></i>
-        </div>
-        <div class="text-xl sm:text-2xl font-bold text-emerald-400 font-mono" id="stat-potongan-sewa">Rp 0</div>
-        <p class="text-xs text-slate-500 mt-1">Klaim sparepart khusus sewaan</p>
-      </div>
     </div>
 
-    <!-- TAB NAVIGATION & SEARCH TOOLBAR -->
-    <div class="bg-slate-900/70 border border-slate-800 p-4 rounded-xl space-y-4">
-      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 w-full md:w-auto">
-          <button onclick="switchTab('armada')" id="tab-btn-armada" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-amber-500 shadow">
-            Master Data & Jadwal Servis
+    <!-- BOTTOM: DARK/LIGHT MODE & PENGATURAN -->
+    <div class="p-3 border-t border-slate-200 dark:border-white/10 space-y-1.5">
+      <button onclick="toggleThemeMode()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-200 font-semibold text-xs transition" title="Ganti Tema Dark / Light Mode">
+        <i data-lucide="sun" id="themeIconSun" class="w-4 h-4 shrink-0 text-amber-400 hidden dark:block"></i>
+        <i data-lucide="moon" id="themeIconMoon" class="w-4 h-4 shrink-0 text-slate-700 block dark:hidden"></i>
+        <span id="themeLabel" class="sidebar-label truncate">Mode Terang</span>
+      </button>
+
+      <button onclick="openSettingsModal('laporan'); toggleMobileSidebar(false);" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-cyber-orange/15 dark:bg-white/[0.04] dark:hover:bg-cyber-orange/15 text-slate-700 dark:text-slate-200 hover:text-cyber-orange font-semibold text-xs transition" title="Pengaturan Kop Laporan & Tampilan">
+        <i data-lucide="settings" class="w-4 h-4 shrink-0 text-cyber-orange"></i>
+        <span class="sidebar-label truncate">Pengaturan</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- RIGHT WORKSPACE AREA -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- TOP BAR -->
+    <header class="no-print sticky top-0 z-30 border-b border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-[#05070c]/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleMobileSidebar(true)" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10">
+            <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
-          <button onclick="switchTab('service')" id="tab-btn-service" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200">
+
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 id="headerBrandTitle" class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                Pendataan Motor Baksos
+              </h1>
+              <span id="syncBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="syncText">Terhubung</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Manajemen Armada, Reminder Telegram, Tiket Kendala Darurat & Klaim Sewa</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="toggleThemeMode()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 transition" title="Ganti Dark / Light Mode">
+            <i data-lucide="sun" class="w-4 h-4 text-amber-400 hidden dark:block"></i>
+            <i data-lucide="moon" class="w-4 h-4 text-slate-700 block dark:hidden"></i>
+          </button>
+          <button onclick="openSettingsModal('laporan')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 transition">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-cyber-orange"></i>
+            <span>Kop Laporan</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="no-print p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 w-full flex-grow">
+
+      <!-- EXECUTIVE STAT CARDS -->
+      <div id="statsSection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-5 surface-panel rounded-2xl relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Total Armada Motor</span>
+            <div class="p-2 rounded-lg bg-cyber-orange/10 text-cyber-orange"><i data-lucide="bike" class="w-4 h-4"></i></div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white num-tabular" id="stat-total-armada">0</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-white/5 flex justify-between num-tabular">
+            <span>Yayasan: <strong class="text-slate-800 dark:text-slate-200" id="stat-motor-yayasan">0</strong></span>
+            <span>Sewaan: <strong class="text-cyber-orange" id="stat-motor-sewaan">0</strong></span>
+          </div>
+        </div>
+
+        <div class="p-5 surface-panel rounded-2xl relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Antrean & Darurat</span>
+            <div class="p-2 rounded-lg bg-rose-500/10 text-rose-500"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white num-tabular" id="stat-perlu-servis">0 Unit</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-white/5 flex justify-between num-tabular">
+            <span>Darurat: <strong class="text-rose-500" id="stat-darurat">0</strong></span>
+            <span>Antre: <strong class="text-amber-500" id="stat-menunggu">0</strong></span>
+            <span>Siap: <strong class="text-cyber-cyan" id="stat-siap-servis">0</strong></span>
+          </div>
+        </div>
+
+        <div class="p-5 surface-panel rounded-2xl relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Biaya Servis Aktif</span>
+            <div class="p-2 rounded-lg bg-cyber-cyan/10 text-cyber-cyan"><i data-lucide="wrench" class="w-4 h-4"></i></div>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-sky-600 dark:text-cyber-cyan num-tabular" id="stat-total-biaya">Rp 0</div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-white/5 num-tabular">
+            <span class="font-semibold text-slate-700 dark:text-slate-200" id="stat-jumlah-service">0 kali</span> servis aktif (<span id="stat-arsip-count">0</span> arsip)
+          </p>
+        </div>
+
+        <div class="p-5 surface-panel rounded-2xl relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Klaim Potong Sewa</span>
+            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><i data-lucide="scissors" class="w-4 h-4"></i></div>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 num-tabular" id="stat-potongan-sewa">Rp 0</div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-white/5">
+            Sparepart khusus unit sewaan
+          </p>
+        </div>
+      </div>
+
+      <!-- TAB NAVIGATION & SEARCH BAR -->
+      <div class="surface-panel p-3.5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="flex bg-slate-100 dark:bg-[#05070c] p-1 rounded-xl border border-slate-200 dark:border-white/10 w-full md:w-auto">
+          <button onclick="switchTab('armada')" id="tab-btn-armada" class="flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-black bg-cyber-orange shadow-xs">
+            Master Armada & Jadwal
+          </button>
+          <button onclick="switchTab('service')" id="tab-btn-service" class="flex-1 md:flex-none px-4 py-2 text-xs font-semibold rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
             Riwayat Service
           </button>
-          <button onclick="switchTab('rekap')" id="tab-btn-rekap" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200">
+          <button onclick="switchTab('rekap')" id="tab-btn-rekap" class="flex-1 md:flex-none px-4 py-2 text-xs font-semibold rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
             Rekap Potongan Sewa
           </button>
         </div>
 
         <div class="relative w-full md:w-80">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="renderCurrentTab()" placeholder="Cari nama, plat, pengguna, bengkel..." class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs sm:text-sm rounded-lg pl-9 pr-4 py-2 focus:border-amber-500 focus:outline-none transition" />
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderCurrentTab()" placeholder="Cari PJ, motor, plat, kendala..." class="w-full bg-slate-50 dark:bg-[#05070c] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-cyber-orange focus:outline-none transition" />
         </div>
       </div>
-    </div>
 
-    <!-- TAB CONTENT 1: MASTER DATA ARMADA MOTOR -->
-    <div id="tab-content-armada" class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
-          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-            <tr>
-              <th class="py-3 px-4 text-center w-10">No</th>
-              <th class="py-3 px-4">Unit Motor & Plat</th>
-              <th class="py-3 px-4 text-center">Kategori</th>
-              <th class="py-3 px-4">PJ / Pengguna</th>
-              <th class="py-3 px-4">Jadwal Servis</th>
-              <th class="py-3 px-4 text-center">Status Reminder</th>
-              <th class="py-3 px-4 text-center w-36">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="armadaTableBody" class="divide-y divide-slate-800/60 font-medium"></tbody>
-        </table>
+      <!-- TAB 1: MASTER DATA ARMADA MOTOR -->
+      <div id="tab-content-armada" class="surface-panel rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-100/80 dark:bg-[#05070c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-white/10">
+              <tr>
+                <th class="py-3.5 px-4 text-center w-10">No</th>
+                <th class="py-3.5 px-4">PJ / Pengguna & Kondisi</th>
+                <th class="py-3.5 px-4">Unit Motor & Plat</th>
+                <th class="py-3.5 px-4 text-center">Kategori</th>
+                <th class="py-3.5 px-4">Siklus & Jadwal Servis</th>
+                <th class="py-3.5 px-4 text-center">Status</th>
+                <th class="py-3.5 px-4 text-center w-36">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="armadaTableBody" class="divide-y divide-slate-200/70 dark:divide-white/[0.06] font-medium"></tbody>
+          </table>
+        </div>
+        <div id="emptyArmada" class="hidden p-10 text-center text-slate-400">
+          <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+          <p class="text-xs">Belum ada data armada motor yang tersimpan.</p>
+        </div>
       </div>
-      <div id="emptyArmada" class="hidden p-8 text-center text-slate-500">
-        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
-        <p>Belum ada data armada motor yang tersimpan.</p>
-      </div>
-    </div>
 
-    <!-- TAB CONTENT 2: RIWAYAT SERVICE / MAINTENANCE -->
-    <div id="tab-content-service" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
-          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-            <tr>
-              <th class="py-3 px-4 text-center w-12">No</th>
-              <th class="py-3 px-4">Tanggal Servis</th>
-              <th class="py-3 px-4">Motor & Plat</th>
-              <th class="py-3 px-4">Jenis Service / Sparepart</th>
-              <th class="py-3 px-4">Nama Bengkel</th>
-              <th class="py-3 px-4 text-right">Biaya (Rp)</th>
-              <th class="py-3 px-4 text-center">Catatan Pemotongan</th>
-              <th class="py-3 px-4 text-center w-20">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="serviceTableBody" class="divide-y divide-slate-800/60"></tbody>
-        </table>
-      </div>
-      <div id="emptyService" class="hidden p-8 text-center text-slate-500">
-        <i data-lucide="wrench" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
-        <p>Belum ada riwayat service motor yang dicatat.</p>
-      </div>
-    </div>
+      <!-- TAB 2: RIWAYAT SERVICE (GROUPED BY TAHUN -> BULAN -> TGL) -->
+      <div id="tab-content-service" class="hidden space-y-4">
+        
+        <div class="surface-panel p-4 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex bg-slate-100 dark:bg-[#05070c] p-1 rounded-xl border border-slate-200 dark:border-white/10">
+              <button onclick="setArchiveViewMode(false)" id="btnViewActiveService" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyber-cyan text-black transition">
+                Data Aktif (<span id="countActiveService">0</span>)
+              </button>
+              <button onclick="setArchiveViewMode(true)" id="btnViewArchivedService" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5">
+                <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+                <span>Arsip (<span id="countArchivedService">0</span>)</span>
+              </button>
+            </div>
 
-    <!-- TAB CONTENT 3: REKAPITULASI POTONGAN BIAYA SEWA -->
-    <div id="tab-content-rekap" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div class="p-4 bg-slate-950/60 border-b border-slate-800">
-        <p class="text-xs text-slate-400">
-          <i data-lucide="info" class="w-4 h-4 inline mr-1 text-amber-400"></i>
-          Hanya berlaku untuk <strong>Motor Sewaan</strong>. Biaya sparepart khusus (seperti Aki, Ban, Mesin) diklaim sebagai pemotongan biaya sewa bulanan ke pemilik motor.
-        </p>
+            <select id="filterServiceYear" onchange="renderServiceGrouped()" class="bg-slate-50 dark:bg-[#05070c] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 focus:border-cyber-cyan focus:outline-none">
+              <option value="ALL">Semua Tahun</option>
+            </select>
+
+            <select id="filterServiceMonth" onchange="renderServiceGrouped()" class="bg-slate-50 dark:bg-[#05070c] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 focus:border-cyber-cyan focus:outline-none">
+              <option value="ALL">Semua Bulan</option>
+              <option value="01">Januari</option>
+              <option value="02">Februari</option>
+              <option value="03">Maret</option>
+              <option value="04">April</option>
+              <option value="05">Mei</option>
+              <option value="06">Juni</option>
+              <option value="07">Juli</option>
+              <option value="08">Agustus</option>
+              <option value="09">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+
+            <select id="sortServiceOrder" onchange="renderServiceGrouped()" class="bg-slate-50 dark:bg-[#05070c] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 focus:border-cyber-cyan focus:outline-none">
+              <option value="desc">Urut: Terbaru → Terlama</option>
+              <option value="asc">Urut: Terlama → Terbaru</option>
+            </select>
+          </div>
+
+          <div class="text-xs text-slate-500 dark:text-slate-400">
+            Menampilkan <strong id="filteredServiceSummary" class="text-slate-800 dark:text-white">0</strong> riwayat dikelompokkan per <strong>Tahun & Bulan</strong>
+          </div>
+        </div>
+
+        <div id="serviceGroupedContainer" class="space-y-4"></div>
+
+        <div id="emptyService" class="hidden surface-panel rounded-2xl p-10 text-center text-slate-400">
+          <i data-lucide="archive" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+          <p id="emptyServiceText" class="text-xs">Belum ada riwayat service pada filter ini.</p>
+        </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs sm:text-sm text-slate-300">
-          <thead class="bg-slate-950 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-            <tr>
-              <th class="py-3 px-4 text-center w-12">No</th>
-              <th class="py-3 px-4">Nama Motor Sewaan</th>
-              <th class="py-3 px-4">Plat Nomor</th>
-              <th class="py-3 px-4">Penanggung Jawab</th>
-              <th class="py-3 px-4 text-center">Jumlah Rincian Service</th>
-              <th class="py-3 px-4 text-right">Total Potongan Sewa (Rp)</th>
-            </tr>
-          </thead>
-          <tbody id="rekapTableBody" class="divide-y divide-slate-800/60 font-medium"></tbody>
-        </table>
+
+      <!-- TAB 3: REKAP POTONGAN SEWA -->
+      <div id="tab-content-rekap" class="hidden surface-panel rounded-2xl overflow-hidden">
+        <div class="p-3.5 bg-cyber-orange/10 border-b border-cyber-orange/20">
+          <p class="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-cyber-orange shrink-0"></i>
+            <span>Berlaku khusus untuk <strong>Motor Sewaan</strong>. Penggantian sparepart khusus otomatis diakumulasikan sebagai pemotongan biaya sewa ke pemilik unit.</span>
+          </p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-100/80 dark:bg-[#05070c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-white/10">
+              <tr>
+                <th class="py-3.5 px-4 text-center w-12">No</th>
+                <th class="py-3.5 px-4">Nama Motor Sewaan</th>
+                <th class="py-3.5 px-4">Plat Nomor</th>
+                <th class="py-3.5 px-4">Penanggung Jawab</th>
+                <th class="py-3.5 px-4 text-center">Frekuensi Klaim</th>
+                <th class="py-3.5 px-4 text-right">Total Potongan Sewa (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="rekapTableBody" class="divide-y divide-slate-200/70 dark:divide-white/[0.06] font-medium"></tbody>
+          </table>
+        </div>
+        <div id="emptyRekap" class="hidden p-10 text-center text-slate-400">
+          <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
+          <p class="text-xs">Tidak ada data motor sewaan yang memerlukan klaim potongan sewa.</p>
+        </div>
       </div>
-      <div id="emptyRekap" class="hidden p-8 text-center text-slate-500">
-        <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2 stroke-1"></i>
-        <p>Tidak ada data motor sewaan yang memerlukan klaim potongan sewa.</p>
-      </div>
-    </div>
-  </main>
+
+    </main>
+  </div>
 
   <!-- MODAL FORM: TAMBAH / EDIT MOTOR -->
-  <div id="modalMotor" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 id="modalMotorTitle" class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-          <i data-lucide="bike" class="w-4 h-4 text-amber-400"></i>
+  <div id="modalMotor" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white dark:bg-[#0a0d14] border border-slate-200 dark:border-white/15 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+        <h3 id="modalMotorTitle" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="bike" class="w-4 h-4 text-cyber-orange"></i>
           <span>Tambah Data Motor Armada</span>
         </h3>
-        <button onclick="closeMotorModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeMotorModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <form id="formMotor" onsubmit="saveMotorData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm max-h-[85vh] overflow-y-auto">
         <input type="hidden" id="motorEditId" value="" />
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">Nama / Merk / Tipe Motor *</label>
-          <input type="text" id="motorNama" required placeholder="Contoh: Honda Supra X 125" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+          <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Nama / Merk / Tipe Motor *</label>
+          <input type="text" id="motorNama" required placeholder="Contoh: Honda Supra X 125" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Kategori Motor *</label>
-            <select id="motorKategori" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Kategori Motor *</label>
+            <select id="motorKategori" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none">
               <option value="Yayasan">Yayasan</option>
               <option value="Sewaan">Sewaan</option>
             </select>
           </div>
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Plat Nomor *</label>
-            <input type="text" id="motorPlat" required placeholder="B 4589 KLS" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 uppercase font-mono focus:border-amber-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Plat Nomor *</label>
+            <input type="text" id="motorPlat" required placeholder="B 4589 KLS" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-amber-600 dark:text-cyber-orange font-bold rounded-xl px-3.5 py-2.5 uppercase focus:border-cyber-orange focus:outline-none" />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Penanggung Jawab / PJ *</label>
-            <input type="text" id="motorPengguna" required placeholder="Contoh: Ustadz Rizky" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Penanggung Jawab / PJ *</label>
+            <input type="text" id="motorPengguna" required placeholder="Contoh: Ustadz Rizky" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none" />
           </div>
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Siklus Servis Rutin *</label>
-            <select id="motorIntervalPreset" onchange="handleIntervalPresetChange()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Siklus Servis Rutin *</label>
+            <select id="motorIntervalPreset" onchange="handleIntervalPresetChange()" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none">
               <option value="14">Setiap 2 Minggu (14 Hari)</option>
               <option value="21">Setiap 3 Minggu (21 Hari)</option>
               <option value="30">Setiap 1 Bulan (30 Hari)</option>
@@ -311,128 +509,243 @@
           </div>
         </div>
 
-        <!-- INPUT CUSTOM HARI (MUNCUL JIKA DIPILIH CUSTOM) -->
-        <div id="customIntervalWrapper" class="hidden bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
-          <label class="block font-medium text-amber-300 mb-1">Masukkan Interval Custom (dalam Hari) *</label>
+        <div id="customIntervalWrapper" class="hidden bg-cyber-orange/10 border border-cyber-orange/25 rounded-xl p-3">
+          <label class="block font-semibold text-amber-700 dark:text-cyber-orange mb-1">Interval Custom (dalam Hari) *</label>
           <div class="flex items-center gap-2">
-            <input type="number" id="motorIntervalCustom" min="1" max="365" value="21" oninput="recalcNextServiceInput()" placeholder="Contoh: 21" class="w-full bg-slate-950 border border-slate-700 text-slate-100 font-mono rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
-            <span class="text-slate-400 font-semibold whitespace-nowrap">Hari sekali</span>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-1">Misal: 21 untuk 3 minggu sekali, 45 untuk 1,5 bulan sekali.</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-medium text-slate-400 mb-1">Tgl Servis Terakhir *</label>
-            <input type="date" id="motorServisTerakhir" onchange="recalcNextServiceInput()" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
-          </div>
-          <div>
-            <label class="block font-medium text-slate-400 mb-1">Jadwal Servis Berikutnya *</label>
-            <input type="date" id="motorJadwalNext" required class="w-full bg-slate-950 border border-slate-800 text-amber-400 font-semibold rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+            <input type="number" id="motorIntervalCustom" min="1" max="365" value="21" oninput="recalcNextServiceInput()" placeholder="21" class="w-full bg-white dark:bg-[#030508] border border-slate-300 dark:border-white/15 text-slate-900 dark:text-white font-semibold rounded-lg px-3 py-2 focus:border-cyber-orange focus:outline-none" />
+            <span class="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">Hari sekali</span>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Status Reminder</label>
-            <select id="motorStatus" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none">
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Tgl Servis Terakhir *</label>
+            <input type="date" id="motorServisTerakhir" onchange="recalcNextServiceInput()" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Jadwal Servis Berikutnya *</label>
+            <input type="date" id="motorJadwalNext" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-amber-600 dark:text-cyber-orange font-bold rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Status Reminder</label>
+            <select id="motorStatus" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none">
               <option value="Aman">Aman</option>
               <option value="Menunggu Konfirmasi">Menunggu Konfirmasi</option>
+              <option value="Kendala Darurat">🚨 Kendala Darurat</option>
               <option value="Siap Servis">Siap Servis</option>
             </select>
           </div>
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Kondisi / Keterangan</label>
-            <input type="text" id="motorKeterangan" placeholder="Ban bagus, oli aman..." class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Kondisi / Keterangan</label>
+            <input type="text" id="motorKeterangan" placeholder="Ban bagus, oli aman..." class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-orange focus:outline-none" />
           </div>
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeMotorModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">Simpan & Sync</button>
+          <button type="button" onclick="closeMotorModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition">Batal</button>
+          <button type="submit" class="px-5 py-2.5 bg-cyber-orange hover:bg-amber-400 text-black font-bold rounded-xl transition">Simpan & Sync</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL FORM: CATAT SERVICE -->
-  <div id="modalService" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-          <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
+  <div id="modalService" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white dark:bg-[#0a0d14] border border-slate-200 dark:border-white/15 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="wrench" class="w-4 h-4 text-cyber-cyan"></i>
           <span>Catat Riwayat Service Motor</span>
         </h3>
-        <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <form id="formService" onsubmit="saveServiceData(event)" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
         <div>
-          <label class="block font-medium text-slate-400 mb-1">Pilih Motor Armada *</label>
-          <select id="serviceMotorSelect" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none"></select>
+          <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Pilih Motor Armada (Berdasarkan PJ) *</label>
+          <select id="serviceMotorSelect" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none"></select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Tanggal Service *</label>
-            <input type="date" id="serviceTgl" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Tanggal Service *</label>
+            <input type="date" id="serviceTgl" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none" />
           </div>
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Nama Bengkel *</label>
-            <input type="text" id="serviceBengkel" required placeholder="AHASS / Bengkel Jaya" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Nama Bengkel *</label>
+            <input type="text" id="serviceBengkel" required placeholder="AHASS / Bengkel Jaya" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none" />
           </div>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">Jenis Service / Penggantian Sparepart *</label>
-          <input type="text" id="serviceJenis" required placeholder="Ganti Oli, Ganti Aki GS, Busi, Kampas Rem" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none" />
+          <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Jenis Service / Penggantian Sparepart *</label>
+          <input type="text" id="serviceJenis" required placeholder="Ganti Oli, Ganti Aki GS, Busi, Kampas Rem" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Biaya Servis (Rp) *</label>
-            <input type="number" id="serviceBiaya" min="0" required placeholder="150000" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 font-mono focus:border-cyan-500 focus:outline-none" />
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Biaya Servis (Rp) *</label>
+            <input type="number" id="serviceBiaya" min="0" required placeholder="150000" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-sky-600 dark:text-cyber-cyan font-bold rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none" />
           </div>
           <div>
-            <label class="block font-medium text-slate-400 mb-1">Status Kategori Pemotongan *</label>
-            <select id="serviceCatatan" required class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 focus:border-cyan-500 focus:outline-none">
+            <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Kategori Pemotongan *</label>
+            <select id="serviceCatatan" required class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:border-cyber-cyan focus:outline-none">
               <option value="Rutin (Tanggungan Yayasan)">Rutin (Tanggungan Yayasan)</option>
               <option value="Sparepart Khusus (Potong Sewa)">Sparepart Khusus (Potong Sewa)</option>
             </select>
           </div>
         </div>
 
-        <div class="p-3 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300">
-          Menyimpan riwayat servis otomatis mengubah status reminder motor menjadi <strong>Aman</strong> dan menghitung jadwal servis berikutnya sesuai interval motor tersebut.
+        <div class="p-3 bg-cyber-cyan/10 border border-cyber-cyan/25 rounded-xl text-[11px] text-sky-800 dark:text-cyan-200">
+          Menyimpan riwayat servis otomatis mengubah status reminder motor menjadi <strong>Aman</strong> dan mereset jadwal berikutnya sesuai siklus motor.
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeServiceModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition">Simpan & Reset Jadwal</button>
+          <button type="button" onclick="closeServiceModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition">Batal</button>
+          <button type="submit" class="px-5 py-2.5 bg-cyber-cyan hover:bg-cyan-400 text-black font-bold rounded-xl transition">Simpan & Reset Jadwal</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL SETTINGS: URL APPS SCRIPT -->
-  <div id="modalSettings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-          <i data-lucide="settings" class="w-4 h-4 text-amber-400"></i>
-          <span>Pengaturan Koneksi Google Apps Script</span>
+  <!-- MODAL SETTINGS LENGKAP -->
+  <div id="modalSettings" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white dark:bg-[#0a0d14] border border-slate-200 dark:border-white/15 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-[#05070c]">
+        <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-cyber-orange"></i>
+          <span>Pengaturan Sistem, Tampilan & Kop Laporan</span>
         </h3>
-        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
-        <div>
-          <label class="block font-medium text-slate-400 mb-1">Web App URL (Apps Script /exec)</label>
-          <input type="url" id="settingApiUrl" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 font-mono text-xs focus:border-amber-500 focus:outline-none" />
-          <p class="text-[11px] text-slate-500 mt-1">URL ini menghubungkan Web Dashboard dengan Google Sheets & Bot Telegram.</p>
+
+      <div class="flex border-b border-slate-200 dark:border-white/10 bg-slate-100/70 dark:bg-[#070910] px-4 pt-2 gap-2 text-xs font-semibold">
+        <button type="button" onclick="switchSettingTab('laporan')" id="stab-btn-laporan" class="px-3.5 py-2 rounded-t-lg border-b-2 border-cyber-orange text-amber-600 dark:text-cyber-orange bg-white dark:bg-white/[0.04]">
+          Kop & Header Laporan A4
+        </button>
+        <button type="button" onclick="switchSettingTab('tampilan')" id="stab-btn-tampilan" class="px-3.5 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          Tampilan & Tombol Kiri
+        </button>
+        <button type="button" onclick="switchSettingTab('api')" id="stab-btn-api" class="px-3.5 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          Koneksi Cloud & Sync
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs sm:text-sm flex-grow">
+        
+        <div id="stab-content-laporan" class="space-y-3.5">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Isi identitas lembaga dan judul dokumen yang akan muncul otomatis pada bagian atas saat menekan <strong>Cetak A4 / PDF</strong>.</p>
+          
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Instansi / Yayasan (Kop Utama)</label>
+            <input type="text" id="setKopInstansi" placeholder="YAYASAN BAKTI SOSIAL INDONESIA" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Divisi / Sub-Judul Kop</label>
+              <input type="text" id="setKopDivisi" placeholder="Divisi Sarana Prasarana & Logistik" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kota Tanda Tangan</label>
+              <input type="text" id="setKopKota" placeholder="Jakarta Timur" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Alamat & Kontak Kop Surat</label>
+            <input type="text" id="setKopAlamat" placeholder="Jl. Operasional Baksos No. 12, Jakarta Timur | Telp: (021) 8590-1234" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul Dokumen Laporan</label>
+            <input type="text" id="setKopJudulLaporan" placeholder="LAPORAN REKAPITULASI ARMADA & RIWAYAT PEMELIHARAAN MOTOR" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-amber-600 dark:text-cyber-orange font-bold rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jabatan Penandatangan Kiri</label>
+              <input type="text" id="setSignKiri" placeholder="Koordinator Sarpras & Armada" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jabatan Penandatangan Kanan</label>
+              <input type="text" id="setSignKanan" placeholder="Ketua Cabang / Pengurus Yayasan" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+          </div>
         </div>
-        <div class="flex justify-end gap-2">
-          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">Tutup</button>
-          <button type="button" onclick="saveSettings()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">Simpan URL</button>
+
+        <div id="stab-content-tampilan" class="hidden space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul Header Dashboard</label>
+              <input type="text" id="setUiBrand" placeholder="Pendataan Motor Baksos" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Siklus Servis Default (Hari)</label>
+              <input type="number" id="setDefaultInterval" min="1" max="365" placeholder="60" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-3">
+            <div class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Visibilitas Grup Tombol Sidebar Kiri</div>
+            
+            <label class="flex items-center justify-between cursor-pointer">
+              <span class="text-slate-700 dark:text-slate-300">Grup <strong>Operasional</strong> (Tambah Motor & Catat Service)</span>
+              <input type="checkbox" id="chkShowOperasional" checked class="w-4 h-4 accent-cyber-orange rounded" />
+            </label>
+
+            <label class="flex items-center justify-between cursor-pointer">
+              <span class="text-slate-700 dark:text-slate-300">Grup <strong>Cloud & Sync</strong> (Sync Sheets & Koneksi API)</span>
+              <input type="checkbox" id="chkShowSync" checked class="w-4 h-4 accent-cyber-orange rounded" />
+            </label>
+
+            <label class="flex items-center justify-between cursor-pointer">
+              <span class="text-slate-700 dark:text-slate-300">Grup <strong>Laporan & Data</strong> (Cetak A4 & Export CSV)</span>
+              <input type="checkbox" id="chkShowLaporan" checked class="w-4 h-4 accent-cyber-orange rounded" />
+            </label>
+
+            <label class="flex items-center justify-between cursor-pointer pt-2 border-t border-slate-200 dark:border-white/10">
+              <span class="text-slate-700 dark:text-slate-300">Tampilkan Kartu Ringkasan Statistik di Atas Tabel</span>
+              <input type="checkbox" id="chkShowStats" checked class="w-4 h-4 accent-cyber-cyan rounded" />
+            </label>
+          </div>
+        </div>
+
+        <div id="stab-content-api" class="hidden space-y-4">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Web App URL (Google Apps Script /exec)</label>
+            <input type="url" id="settingApiUrl" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-sky-600 dark:text-cyber-cyan rounded-xl px-3.5 py-2.5 text-xs focus:border-cyber-orange focus:outline-none" />
+            <p class="text-[11px] text-slate-500 mt-1">Endpoint penghubung antara Web Dashboard, Google Sheets, dan Bot Telegram.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Interval Auto-Sync Cloud</label>
+              <select id="setAutoSyncSec" class="w-full bg-slate-50 dark:bg-[#030508] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3.5 py-2 focus:border-cyber-orange focus:outline-none">
+                <option value="0">Manual (Matikan Auto-Sync)</option>
+                <option value="10">Setiap 10 Detik</option>
+                <option value="30" selected>Setiap 30 Detik (Disarankan)</option>
+                <option value="60">Setiap 1 Menit</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="button" onclick="resetLocalCacheData()" class="w-full px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold transition">
+                Reset Cache Lokal Browser
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#05070c] flex justify-between items-center gap-2">
+        <button type="button" onclick="resetDefaultSettings()" class="text-xs text-slate-500 hover:text-rose-500 transition">Reset Default</button>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-200/70 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition">Batal</button>
+          <button type="button" onclick="saveAllSettings()" class="px-5 py-2 bg-cyber-orange hover:bg-amber-400 text-black font-bold rounded-xl transition">Simpan Pengaturan</button>
         </div>
       </div>
     </div>
@@ -441,11 +754,11 @@
   <!-- AREA PRINTABLE RESMI A4 UNTUK CETAK LAPORAN PDF -->
   <div id="printableArea" class="hidden">
     <div class="kop-header">
-      <h1 class="kop-title">YAYASAN BAKTI SOSIAL INDONESIA</h1>
-      <p class="kop-sub">Kantor Operasional Baksos & Logistik Armada Motor</p>
-      <p class="kop-sub">Jl. Operasional Baksos No. 12, Jakarta Timur | Telp: (021) 8590-1234 | Email: armada@baktisosial.or.id</p>
-      <div class="report-title">LAPORAN REKAPITULASI MASTER ARMADA & RIWAYAT SERVICE MOTOR</div>
-      <p style="font-size: 8.5pt; margin-top: 3px;">Periode Cetak: <span id="printDate" style="font-weight: bold;"></span></p>
+      <h1 id="printKopInstansi" class="kop-title">YAYASAN BAKTI SOSIAL INDONESIA</h1>
+      <p id="printKopDivisi" class="kop-sub">Divisi Sarana Prasarana & Logistik Armada Motor</p>
+      <p id="printKopAlamat" class="kop-sub">Jl. Operasional Baksos No. 12, Jakarta Timur | Telp: (021) 8590-1234</p>
+      <div id="printKopJudulLaporan" class="report-title">LAPORAN REKAPITULASI MASTER ARMADA & RIWAYAT SERVICE MOTOR</div>
+      <p style="font-size: 8.5pt; margin-top: 3px;">Tanggal Cetak: <span id="printDate" style="font-weight: bold;"></span> <span id="printPeriodeLabel"></span></p>
     </div>
 
     <div class="section-heading">I. RINGKASAN EKSEKUTIF ARMADA & FINANSIAL</div>
@@ -458,15 +771,15 @@
       <div><strong>Total Tindakan Servis:</strong> <span id="printTotalServisCount">0</span> Kali</div>
     </div>
 
-    <div class="section-heading">II. DATA MASTER ARMADA MOTOR YAYASAN</div>
+    <div class="section-heading">II. DATA MASTER ARMADA MOTOR</div>
     <table class="print-table">
       <thead>
         <tr>
           <th style="width: 25px;">No</th>
+          <th>Penanggung Jawab</th>
           <th>Nama / Jenis Motor</th>
           <th style="width: 65px;">Kategori</th>
           <th style="width: 85px;">Plat Nomor</th>
-          <th>Penanggung Jawab</th>
           <th style="width: 85px;">Jadwal Next</th>
           <th>Kondisi & Keterangan</th>
         </tr>
@@ -505,15 +818,15 @@
     </table>
 
     <div style="margin-top: 30px; display: flex; justify-content: space-between; page-break-inside: avoid;">
-      <div style="text-align: center; width: 200px;">
+      <div style="text-align: center; width: 210px;">
         <p style="margin: 0; font-size: 9pt;">Mengetahui,</p>
-        <p style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Koordinator Armada Baksos</p>
+        <p id="printSignKiri" style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Koordinator Sarpras & Armada</p>
         <div style="height: 50px;"></div>
         <p style="margin: 0; font-weight: bold; font-size: 9pt; border-top: 1px solid #000; display: inline-block; width: 100%;">( ______________________ )</p>
       </div>
       <div style="text-align: center; width: 220px;">
-        <p style="margin: 0; font-size: 9pt;">Jakarta, <span id="printDateSign"></span></p>
-        <p style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Pengurus Yayasan Bakti Sosial</p>
+        <p style="margin: 0; font-size: 9pt;"><span id="printKotaSign">Jakarta Timur</span>, <span id="printDateSign"></span></p>
+        <p id="printSignKanan" style="margin: 2px 0 0 0; font-weight: bold; font-size: 9pt;">Pengurus Yayasan Bakti Sosial</p>
         <div style="height: 50px;"></div>
         <p style="margin: 0; font-weight: bold; font-size: 9pt; border-top: 1px solid #000; display: inline-block; width: 100%;">( ______________________ )</p>
       </div>
@@ -523,38 +836,150 @@
   <!-- JAVASCRIPT LOGIC -->
   <script>
     const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbwnBxuJ2FLqTOgfKKAGrbrCskR6xmtcEmHiSJqHoWStDBlLQ9sdi04QggTB5sLbD8mjXQ/exec";
-    let API_URL = localStorage.getItem("yayasan_motor_api_url") || DEFAULT_API_URL;
 
+    const MONTH_NAMES_ID = {
+      "01": "Januari", "02": "Februari", "03": "Maret", "04": "April",
+      "05": "Mei", "06": "Juni", "07": "Juli", "08": "Agustus",
+      "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
+    };
+
+    const DEFAULT_SETTINGS = {
+      apiUrl: DEFAULT_API_URL,
+      autoSyncSec: 30,
+      defaultInterval: 60,
+      theme: "dark",
+      sidebarCompact: false,
+      uiBrand: "Pendataan Motor Baksos",
+      showOperasional: true,
+      showSync: true,
+      showLaporan: true,
+      showStats: true,
+      kopInstansi: "YAYASAN BAKTI SOSIAL INDONESIA",
+      kopDivisi: "Divisi Sarana Prasarana & Logistik Armada Motor",
+      kopAlamat: "Jl. Operasional Baksos No. 12, Jakarta Timur | Telp: (021) 8590-1234",
+      kopKota: "Jakarta Timur",
+      kopJudulLaporan: "LAPORAN REKAPITULASI MASTER ARMADA & RIWAYAT SERVICE MOTOR",
+      signKiri: "Koordinator Sarpras & Armada",
+      signKanan: "Pengurus Yayasan Bakti Sosial"
+    };
+
+    let appSettings = { ...DEFAULT_SETTINGS };
     let armadaList = [];
     let serviceList = [];
     let currentTab = 'armada';
+    let showArchivedMode = false;
+    let syncTimerId = null;
 
     document.addEventListener("DOMContentLoaded", () => {
+      loadSettings();
+      applySettingsToUI();
+
       const savedArmada = localStorage.getItem("yayasan_armada_list");
       const savedService = localStorage.getItem("yayasan_service_list");
       if (savedArmada) armadaList = JSON.parse(savedArmada);
       if (savedService) serviceList = JSON.parse(savedService);
 
       lucide.createIcons();
+      populateYearFilterOptions();
       updateDashboardStats();
       renderCurrentTab();
       fetchFromCloud(false);
-
-      // Auto-sync setiap 10 detik saat tab aktif agar update dari Telegram otomatis tampil
-      setInterval(() => {
-        if (!document.hidden) fetchFromCloud(false);
-      }, 10000);
+      setupAutoSyncTimer();
     });
+
+    function loadSettings() {
+      const raw = localStorage.getItem("fleetos_settings_v3");
+      if (raw) {
+        try {
+          appSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+        } catch (e) {
+          appSettings = { ...DEFAULT_SETTINGS };
+        }
+      }
+    }
+
+    function persistSettings() {
+      localStorage.setItem("fleetos_settings_v3", JSON.stringify(appSettings));
+    }
+
+    function applySettingsToUI() {
+      const htmlEl = document.documentElement;
+      const themeLabel = document.getElementById("themeLabel");
+      if (appSettings.theme === "light") {
+        htmlEl.classList.remove("dark");
+        if (themeLabel) themeLabel.innerText = "Mode Gelap";
+      } else {
+        htmlEl.classList.add("dark");
+        if (themeLabel) themeLabel.innerText = "Mode Terang";
+      }
+
+      document.getElementById("headerBrandTitle").innerText = appSettings.uiBrand;
+
+      document.getElementById("group-operasional").classList.toggle("hidden", !appSettings.showOperasional);
+      document.getElementById("group-sync").classList.toggle("hidden", !appSettings.showSync);
+      document.getElementById("group-laporan").classList.toggle("hidden", !appSettings.showLaporan);
+      document.getElementById("statsSection").classList.toggle("hidden", !appSettings.showStats);
+
+      const sidebar = document.getElementById("leftSidebar");
+      const labels = document.querySelectorAll(".sidebar-label");
+      const compactIcon = document.getElementById("sidebarCompactIcon");
+      if (appSettings.sidebarCompact) {
+        sidebar.classList.remove("w-64");
+        sidebar.classList.add("w-[72px]");
+        labels.forEach(el => el.classList.add("hidden"));
+        if (compactIcon) compactIcon.setAttribute("data-lucide", "panel-left-open");
+      } else {
+        sidebar.classList.remove("w-[72px]");
+        sidebar.classList.add("w-64");
+        labels.forEach(el => el.classList.remove("hidden"));
+        if (compactIcon) compactIcon.setAttribute("data-lucide", "panel-left-close");
+      }
+      lucide.createIcons();
+    }
+
+    function toggleThemeMode() {
+      appSettings.theme = appSettings.theme === "dark" ? "light" : "dark";
+      persistSettings();
+      applySettingsToUI();
+    }
+
+    function toggleSidebarCompact() {
+      appSettings.sidebarCompact = !appSettings.sidebarCompact;
+      persistSettings();
+      applySettingsToUI();
+    }
+
+    function toggleMobileSidebar(open) {
+      const sidebar = document.getElementById("leftSidebar");
+      const backdrop = document.getElementById("mobileBackdrop");
+      if (open) {
+        sidebar.classList.remove("-translate-x-full");
+        backdrop.classList.remove("hidden");
+      } else {
+        sidebar.classList.add("-translate-x-full");
+        backdrop.classList.add("hidden");
+      }
+    }
+
+    function setupAutoSyncTimer() {
+      if (syncTimerId) clearInterval(syncTimerId);
+      const sec = Number(appSettings.autoSyncSec) || 0;
+      if (sec > 0) {
+        syncTimerId = setInterval(() => {
+          if (!document.hidden) fetchFromCloud(false);
+        }, sec * 1000);
+      }
+    }
 
     function showToast(msg, type = "info") {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
       const colors = {
-        success: "bg-emerald-950/90 border-emerald-500/40 text-emerald-200",
-        error: "bg-rose-950/90 border-rose-500/40 text-rose-200",
-        info: "bg-slate-900/95 border-amber-500/40 text-slate-100"
+        success: "bg-emerald-950/95 border-emerald-500/40 text-emerald-100",
+        error: "bg-rose-950/95 border-rose-500/40 text-rose-100",
+        info: "bg-slate-900/95 border-cyber-orange/50 text-slate-100"
       };
-      toast.className = `px-4 py-2.5 rounded-xl border text-xs font-medium shadow-xl backdrop-blur transition-all ${colors[type] || colors.info}`;
+      toast.className = `px-4 py-2.5 rounded-xl border text-xs font-medium shadow-2xl backdrop-blur-md transition-all ${colors[type] || colors.info}`;
       toast.innerText = msg;
       container.appendChild(toast);
       setTimeout(() => { toast.remove(); }, 3500);
@@ -565,49 +990,52 @@
       const text = document.getElementById("syncText");
       text.innerText = label;
       if (state === "loading") {
-        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25";
       } else if (state === "error") {
-        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25";
       } else {
-        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25";
       }
     }
 
-    // AMBIL DATA DARI GOOGLE SHEETS
+    // CLOUD SYNC
     async function fetchFromCloud(notify = false) {
-      if (!API_URL) return;
+      if (!appSettings.apiUrl) return;
       const icon = document.getElementById("refreshIcon");
       if (icon && notify) icon.classList.add("animate-spin");
-      setSyncStatus("loading", "Syncing...");
+      setSyncStatus("loading", "Menyinkronkan...");
 
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(appSettings.apiUrl);
         const data = await res.json();
         if (data.status === "success") {
           armadaList = data.armada || [];
-          serviceList = (data.service || []).reverse();
-          localStorage.setItem("yayasan_armada_list", JSON.stringify(armadaList));
-          localStorage.setItem("yayasan_service_list", JSON.stringify(serviceList));
-          updateDashboardStats();
+          const prevServiceMap = new Map(serviceList.map(s => [s.id, s.archived]));
+          serviceList = (data.service || []).reverse().map(s => ({
+            ...s,
+            archived: s.archived !== undefined ? (s.archived === true || s.archived === "Arsip") : (prevServiceMap.get(s.id) || false)
+          }));
+
+          saveLocalCache();
+          populateYearFilterOptions();
           renderCurrentTab();
-          setSyncStatus("ok", "Cloud Sync");
+          setSyncStatus("ok", "Terhubung");
           if (notify) showToast("Data berhasil disinkronkan dengan Google Sheets!", "success");
         }
       } catch (err) {
         console.error(err);
-        setSyncStatus("error", "Offline Cache");
+        setSyncStatus("error", "Cache Lokal");
         if (notify) showToast("Gagal terhubung ke server, menampilkan cache lokal.", "error");
       } finally {
         if (icon) icon.classList.remove("animate-spin");
       }
     }
 
-    // KIRIM PERUBAHAN KE GOOGLE SHEETS
     async function postToCloud(payload) {
-      if (!API_URL) return;
+      if (!appSettings.apiUrl) return;
       setSyncStatus("loading", "Menyimpan...");
       try {
-        await fetch(API_URL, {
+        await fetch(appSettings.apiUrl, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -633,26 +1061,35 @@
       const totalYayasan = armadaList.filter(a => a.kategori === 'Yayasan').length;
       const totalSewaan = armadaList.filter(a => a.kategori === 'Sewaan').length;
 
+      const daruratCount = armadaList.filter(a => a.status === 'Kendala Darurat').length;
       const menungguCount = armadaList.filter(a => a.status === 'Menunggu Konfirmasi').length;
       const siapServisCount = armadaList.filter(a => a.status === 'Siap Servis').length;
 
-      const totalBiayaService = serviceList.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
-      const totalPotonganSewa = serviceList.reduce((acc, curr) => {
+      const activeServices = serviceList.filter(s => !s.archived);
+      const archivedServices = serviceList.filter(s => s.archived);
+
+      const totalBiayaService = activeServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+      const totalPotonganSewa = activeServices.reduce((acc, curr) => {
         return curr.catatan === "Sparepart Khusus (Potong Sewa)" ? acc + (Number(curr.biaya) || 0) : acc;
       }, 0);
 
       document.getElementById("stat-total-armada").innerText = totalArmada;
       document.getElementById("stat-motor-yayasan").innerText = totalYayasan;
       document.getElementById("stat-motor-sewaan").innerText = totalSewaan;
-      document.getElementById("stat-perlu-servis").innerText = (menungguCount + siapServisCount) + " Unit";
+      document.getElementById("stat-perlu-servis").innerText = (daruratCount + menungguCount + siapServisCount) + " Unit";
+      document.getElementById("stat-darurat").innerText = daruratCount;
       document.getElementById("stat-menunggu").innerText = menungguCount;
       document.getElementById("stat-siap-servis").innerText = siapServisCount;
       document.getElementById("stat-total-biaya").innerText = formatRupiah(totalBiayaService);
       document.getElementById("stat-potongan-sewa").innerText = formatRupiah(totalPotonganSewa);
-      document.getElementById("stat-jumlah-service").innerText = serviceList.length + " kali";
+      document.getElementById("stat-jumlah-service").innerText = activeServices.length + " kali";
+      document.getElementById("stat-arsip-count").innerText = archivedServices.length;
+
+      document.getElementById("countActiveService").innerText = activeServices.length;
+      document.getElementById("countArchivedService").innerText = archivedServices.length;
     }
 
-    // SWAPPING TABS
+    // TABS
     function switchTab(tab) {
       currentTab = tab;
       const btnArmada = document.getElementById("tab-btn-armada");
@@ -663,18 +1100,18 @@
       const cntRekap = document.getElementById("tab-content-rekap");
 
       [btnArmada, btnService, btnRekap].forEach(b => {
-        b.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-400 hover:text-slate-200";
+        b.className = "flex-1 md:flex-none px-4 py-2 text-xs font-semibold rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
       });
       [cntArmada, cntService, cntRekap].forEach(c => c.classList.add("hidden"));
 
       if (tab === 'armada') {
-        btnArmada.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-amber-500 shadow";
+        btnArmada.className = "flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-black bg-cyber-orange shadow-xs";
         cntArmada.classList.remove("hidden");
       } else if (tab === 'service') {
-        btnService.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-cyan-500 shadow";
+        btnService.className = "flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-black bg-cyber-cyan shadow-xs";
         cntService.classList.remove("hidden");
       } else if (tab === 'rekap') {
-        btnRekap.className = "flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-md transition text-slate-950 bg-emerald-500 shadow";
+        btnRekap.className = "flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-black bg-emerald-400 shadow-xs";
         cntRekap.classList.remove("hidden");
       }
       renderCurrentTab();
@@ -683,7 +1120,7 @@
     function renderCurrentTab() {
       const q = document.getElementById("searchInput").value.toLowerCase();
       if (currentTab === 'armada') renderArmadaTable(q);
-      else if (currentTab === 'service') renderServiceTable(q);
+      else if (currentTab === 'service') renderServiceGrouped();
       else if (currentTab === 'rekap') renderRekapTable(q);
     }
 
@@ -704,7 +1141,8 @@
         (item.nama || "").toLowerCase().includes(query) ||
         (item.plat || "").toLowerCase().includes(query) ||
         (item.pengguna || "").toLowerCase().includes(query) ||
-        (item.kategori || "").toLowerCase().includes(query)
+        (item.keterangan || "").toLowerCase().includes(query) ||
+        (item.status || "").toLowerCase().includes(query)
       );
 
       if (filtered.length === 0) {
@@ -715,51 +1153,57 @@
 
       filtered.forEach((item, idx) => {
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-800/40 transition";
         const isYayasan = item.kategori === 'Yayasan';
         const status = item.status || "Aman";
+        const isDarurat = status === "Kendala Darurat";
 
-        let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">🟢 Aman</span>`;
-        if (status === "Menunggu Konfirmasi") {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">🟡 Menunggu Konfirmasi</span>`;
+        tr.className = isDarurat
+          ? "bg-rose-500/[0.06] hover:bg-rose-500/[0.10] transition"
+          : "hover:bg-slate-50 dark:hover:bg-white/[0.03] transition";
+
+        let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">Aman</span>`;
+        if (isDarurat) {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/40 animate-pulse">🚨 Kendala Darurat</span>`;
+        } else if (status === "Menunggu Konfirmasi") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">Menunggu</span>`;
         } else if (status === "Siap Servis") {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30">🔵 Siap Servis</span>`;
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cyber-cyan/15 text-sky-600 dark:text-cyber-cyan border border-cyber-cyan/30">Siap Servis</span>`;
         }
 
-        const confirmBtn = status === "Menunggu Konfirmasi"
-          ? `<button onclick="confirmSiapServisWeb('${item.id}')" class="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded transition" title="Konfirmasi Siap Servis"><i data-lucide="check-circle-2" class="w-4 h-4"></i></button>`
+        const confirmBtn = (status === "Menunggu Konfirmasi" || isDarurat)
+          ? `<button onclick="confirmSiapServisWeb('${item.id}')" class="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15 rounded-lg transition" title="Konfirmasi Siap Servis"><i data-lucide="check-circle-2" class="w-4 h-4"></i></button>`
           : "";
 
         tr.innerHTML = `
-          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
-          <td class="py-3 px-4">
-            <div class="font-bold text-slate-100">${item.nama}</div>
-            <div class="font-mono text-xs text-amber-400">${item.plat}</div>
+          <td class="py-3.5 px-4 text-center text-xs text-slate-400 num-tabular">${idx + 1}</td>
+          <td class="py-3.5 px-4">
+            <div class="font-bold text-slate-900 dark:text-white">${item.pengguna}</div>
+            <div class="text-[11px] ${isDarurat ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}">${item.keterangan || "-"}</div>
           </td>
-          <td class="py-3 px-4 text-center">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${isYayasan ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}">
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">${item.nama}</div>
+            <div class="text-xs font-bold text-amber-600 dark:text-cyber-orange">${item.plat}</div>
+          </td>
+          <td class="py-3.5 px-4 text-center">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isYayasan ? 'bg-cyber-orange/15 text-amber-700 dark:text-cyber-orange border border-cyber-orange/25' : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25'}">
               ${item.kategori}
             </span>
           </td>
-          <td class="py-3 px-4">
-            <div class="text-slate-200">${item.pengguna}</div>
-            <div class="text-[11px] text-slate-500">${item.keterangan || "-"}</div>
+          <td class="py-3.5 px-4 num-tabular">
+            <div class="text-xs text-slate-700 dark:text-slate-200">Next: <strong class="text-amber-600 dark:text-cyber-orange">${item.jadwalBerikutnya || "-"}</strong></div>
+            <div class="text-[11px] text-slate-500">Last: ${item.servisTerakhir || "-"} • <span>${formatIntervalLabel(item.interval)}</span></div>
           </td>
-          <td class="py-3 px-4">
-            <div class="font-mono text-xs text-slate-200">Next: <strong class="text-amber-300">${item.jadwalBerikutnya || "-"}</strong></div>
-            <div class="text-[11px] text-slate-500">Last: ${item.servisTerakhir || "-"} • <span class="text-slate-400">${formatIntervalLabel(item.interval)}</span></div>
-          </td>
-          <td class="py-3 px-4 text-center">${statusBadge}</td>
-          <td class="py-3 px-4 text-center">
+          <td class="py-3.5 px-4 text-center">${statusBadge}</td>
+          <td class="py-3.5 px-4 text-center">
             <div class="flex items-center justify-center gap-1">
               ${confirmBtn}
-              <button onclick="sendTestReminder('${item.id}', '${item.nama}')" class="p-1.5 text-sky-400 hover:bg-sky-500/10 rounded transition" title="Kirim Test Reminder ke Telegram">
+              <button onclick="sendTestReminder('${item.id}', '${item.nama}')" class="p-1.5 text-sky-600 dark:text-cyber-cyan hover:bg-cyber-cyan/15 rounded-lg transition" title="Kirim Reminder ke Telegram">
                 <i data-lucide="send" class="w-4 h-4"></i>
               </button>
-              <button onclick="editMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-amber-400 rounded transition" title="Edit Data">
+              <button onclick="editMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-cyber-orange hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition" title="Edit Data">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
               </button>
-              <button onclick="deleteMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded transition" title="Hapus Data">
+              <button onclick="deleteMotor('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition" title="Hapus Data">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
@@ -770,57 +1214,223 @@
       lucide.createIcons();
     }
 
-    // RENDER SERVICE TABLE
-    function renderServiceTable(query = "") {
-      const tbody = document.getElementById("serviceTableBody");
-      const empty = document.getElementById("emptyService");
-      tbody.innerHTML = "";
+    // SISTEM ARSIP & PENGELOMPOKAN RIWAYAT (TAHUN -> BULAN -> TGL)
+    function populateYearFilterOptions() {
+      const yearSelect = document.getElementById("filterServiceYear");
+      const currentVal = yearSelect.value;
+      const years = new Set();
+      serviceList.forEach(s => {
+        if (s.tgl && s.tgl.length >= 4) years.add(s.tgl.substring(0, 4));
+      });
+      const sortedYears = Array.from(years).sort((a, b) => b.localeCompare(a));
 
-      const filtered = serviceList.filter(item =>
-        (item.namaMotor || "").toLowerCase().includes(query) ||
-        (item.plat || "").toLowerCase().includes(query) ||
-        (item.jenis || "").toLowerCase().includes(query) ||
-        (item.bengkel || "").toLowerCase().includes(query)
-      );
+      yearSelect.innerHTML = `<option value="ALL">Semua Tahun</option>`;
+      sortedYears.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.innerText = `Tahun ${y}`;
+        yearSelect.appendChild(opt);
+      });
+      if (sortedYears.includes(currentVal)) yearSelect.value = currentVal;
+    }
+
+    function setArchiveViewMode(isArchived) {
+      showArchivedMode = isArchived;
+      const btnActive = document.getElementById("btnViewActiveService");
+      const btnArch = document.getElementById("btnViewArchivedService");
+
+      if (!isArchived) {
+        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-cyber-cyan text-black transition";
+        btnArch.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5";
+      } else {
+        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        btnArch.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-black transition flex items-center gap-1.5";
+      }
+      renderServiceGrouped();
+    }
+
+    function toggleServiceArchive(id) {
+      const idx = serviceList.findIndex(s => s.id === id);
+      if (idx === -1) return;
+      const newStatus = !serviceList[idx].archived;
+      serviceList[idx].archived = newStatus;
+      saveLocalCache();
+      renderServiceGrouped();
+      showToast(newStatus ? "Riwayat servis dipindahkan ke Arsip." : "Riwayat servis dikembalikan ke Data Aktif.", "success");
+      postToCloud({ apiAction: "archiveService", id: id, archived: newStatus });
+    }
+
+    function toggleMonthBatchArchive(ymKey, targetArchiveState) {
+      const [year, month] = ymKey.split("-");
+      const labelBulan = `${MONTH_NAMES_ID[month] || month} ${year}`;
+      const msg = targetArchiveState
+        ? `Arsipkan semua riwayat servis pada bulan ${labelBulan}?`
+        : `Kembalikan semua arsip servis pada bulan ${labelBulan} ke Data Aktif?`;
+
+      if (!confirm(msg)) return;
+
+      const affectedIds = [];
+      serviceList.forEach(s => {
+        if ((s.tgl || "").startsWith(ymKey) && Boolean(s.archived) !== targetArchiveState) {
+          s.archived = targetArchiveState;
+          affectedIds.push(s.id);
+        }
+      });
+
+      if (affectedIds.length > 0) {
+        saveLocalCache();
+        renderServiceGrouped();
+        showToast(`${affectedIds.length} riwayat bulan ${labelBulan} berhasil ${targetArchiveState ? 'diarsipkan' : 'dikembalikan'}!`, "success");
+        postToCloud({ apiAction: "archiveServiceBatch", ids: affectedIds, archived: targetArchiveState });
+      }
+    }
+
+    function renderServiceGrouped() {
+      const container = document.getElementById("serviceGroupedContainer");
+      const empty = document.getElementById("emptyService");
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const filterYear = document.getElementById("filterServiceYear").value;
+      const filterMonth = document.getElementById("filterServiceMonth").value;
+      const sortOrder = document.getElementById("sortServiceOrder").value;
+
+      container.innerHTML = "";
+
+      const filtered = serviceList.filter(item => {
+        if (Boolean(item.archived) !== showArchivedMode) return false;
+        const tgl = item.tgl || "";
+        if (filterYear !== "ALL" && !tgl.startsWith(filterYear)) return false;
+        if (filterMonth !== "ALL" && tgl.substring(5, 7) !== filterMonth) return false;
+
+        return (
+          (item.namaMotor || "").toLowerCase().includes(query) ||
+          (item.plat || "").toLowerCase().includes(query) ||
+          (item.jenis || "").toLowerCase().includes(query) ||
+          (item.bengkel || "").toLowerCase().includes(query)
+        );
+      });
+
+      filtered.sort((a, b) => {
+        const cmp = (a.tgl || "").localeCompare(b.tgl || "");
+        return sortOrder === "asc" ? cmp : -cmp;
+      });
+
+      document.getElementById("filteredServiceSummary").innerText = filtered.length;
 
       if (filtered.length === 0) {
         empty.classList.remove("hidden");
+        document.getElementById("emptyServiceText").innerText = showArchivedMode
+          ? "Belum ada riwayat service yang diarsipkan pada filter ini."
+          : "Belum ada riwayat service aktif pada filter ini.";
         return;
       }
       empty.classList.add("hidden");
 
-      filtered.forEach((item, idx) => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-800/40 transition";
-        const isPotongSewa = item.catatan === "Sparepart Khusus (Potong Sewa)";
-
-        tr.innerHTML = `
-          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
-          <td class="py-3 px-4 font-mono text-xs text-slate-300">${item.tgl}</td>
-          <td class="py-3 px-4">
-            <div class="font-bold text-slate-100">${item.namaMotor}</div>
-            <div class="font-mono text-xs text-amber-400">${item.plat}</div>
-          </td>
-          <td class="py-3 px-4 text-slate-200">${item.jenis}</td>
-          <td class="py-3 px-4 text-slate-300">${item.bengkel}</td>
-          <td class="py-3 px-4 text-right font-mono font-bold text-cyan-400">${formatRupiah(item.biaya)}</td>
-          <td class="py-3 px-4 text-center">
-            <span class="px-2 py-0.5 rounded text-xs font-medium ${isPotongSewa ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
-              ${item.catatan}
-            </span>
-          </td>
-          <td class="py-3 px-4 text-center">
-            <button onclick="deleteService('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 transition" title="Hapus Riwayat">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+      const groups = new Map();
+      filtered.forEach(item => {
+        const tgl = item.tgl || "0000-00-00";
+        const ymKey = tgl.length >= 7 ? tgl.substring(0, 7) : "Lainnya";
+        if (!groups.has(ymKey)) groups.set(ymKey, []);
+        groups.get(ymKey).push(item);
       });
+
+      groups.forEach((items, ymKey) => {
+        const [year, month] = ymKey.split("-");
+        const monthTitle = MONTH_NAMES_ID[month] ? `${MONTH_NAMES_ID[month]} ${year}` : ymKey;
+        const groupTotalBiaya = items.reduce((sum, x) => sum + (Number(x.biaya) || 0), 0);
+
+        const groupCard = document.createElement("div");
+        groupCard.className = "surface-panel rounded-2xl overflow-hidden";
+
+        const rowsHtml = items.map((item, idx) => {
+          const isPotongSewa = item.catatan === "Sparepart Khusus (Potong Sewa)";
+          const archiveBtnTitle = showArchivedMode ? "Kembalikan ke Aktif" : "Arsipkan Riwayat Ini";
+          const archiveIcon = showArchivedMode ? "archive-restore" : "archive";
+          const archiveBtnColor = showArchivedMode
+            ? "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15"
+            : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/15";
+
+          return `
+            <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition">
+              <td class="py-3 px-4 text-center text-xs text-slate-400 num-tabular">${idx + 1}</td>
+              <td class="py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 num-tabular whitespace-nowrap">${item.tgl}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-slate-900 dark:text-white">${item.namaMotor}</div>
+                <div class="text-xs font-semibold text-amber-600 dark:text-cyber-orange">${item.plat}</div>
+              </td>
+              <td class="py-3 px-4 text-slate-700 dark:text-slate-200">${item.jenis}</td>
+              <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${item.bengkel}</td>
+              <td class="py-3 px-4 text-right font-bold text-sky-600 dark:text-cyber-cyan num-tabular whitespace-nowrap">${formatRupiah(item.biaya)}</td>
+              <td class="py-3 px-4 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isPotongSewa ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'}">
+                  ${item.catatan}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <button onclick="toggleServiceArchive('${item.id}')" class="p-1.5 rounded-lg transition ${archiveBtnColor}" title="${archiveBtnTitle}">
+                    <i data-lucide="${archiveIcon}" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="deleteService('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition" title="Hapus Permanen">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        groupCard.innerHTML = `
+          <div class="px-4 py-3 bg-slate-100/90 dark:bg-[#070a11] border-b border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-cyber-cyan/15 text-sky-700 dark:text-cyber-cyan border border-cyber-cyan/25">
+                ${monthTitle}
+              </span>
+              <span class="text-xs text-slate-500 dark:text-slate-400 num-tabular">
+                ${items.length} transaksi • Total: <strong class="text-slate-900 dark:text-white">${formatRupiah(groupTotalBiaya)}</strong>
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="triggerPrintReport('${ymKey}')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-white dark:bg-white/5 hover:bg-slate-200/70 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 transition" title="Cetak Laporan Bulan Ini">
+                <i data-lucide="printer" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span>Cetak Bulan Ini</span>
+              </button>
+
+              <button onclick="toggleMonthBatchArchive('${ymKey}', ${!showArchivedMode})" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold ${showArchivedMode ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'} transition">
+                <i data-lucide="${showArchivedMode ? 'archive-restore' : 'archive'}" class="w-3.5 h-3.5"></i>
+                <span>${showArchivedMode ? 'Kembalikan Bulan Ini' : 'Arsipkan Bulan Ini'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+              <thead class="bg-slate-50/70 dark:bg-[#05070c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-white/10">
+                <tr>
+                  <th class="py-2.5 px-4 text-center w-10">No</th>
+                  <th class="py-2.5 px-4">Tanggal</th>
+                  <th class="py-2.5 px-4">Motor & Plat</th>
+                  <th class="py-2.5 px-4">Jenis Service / Sparepart</th>
+                  <th class="py-2.5 px-4">Bengkel</th>
+                  <th class="py-2.5 px-4 text-right">Biaya (Rp)</th>
+                  <th class="py-2.5 px-4 text-center">Kategori Pemotongan</th>
+                  <th class="py-2.5 px-4 text-center w-24">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200/60 dark:divide-white/[0.06]">
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.appendChild(groupCard);
+      });
+
       lucide.createIcons();
     }
 
-    // RENDER REKAP POTONGAN SEWA TABLE
+    // RENDER REKAP POTONGAN SEWA
     function renderRekapTable(query = "") {
       const tbody = document.getElementById("rekapTableBody");
       const empty = document.getElementById("emptyRekap");
@@ -840,27 +1450,27 @@
       empty.classList.add("hidden");
 
       filtered.forEach((item, idx) => {
-        const serviceMotor = serviceList.filter(s => (s.motorId === item.id || s.plat === item.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+        const serviceMotor = serviceList.filter(s => !s.archived && (s.motorId === item.id || s.plat === item.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
         const totalPotongan = serviceMotor.reduce((sum, s) => sum + (Number(s.biaya) || 0), 0);
 
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-800/40 transition";
+        tr.className = "hover:bg-slate-50 dark:hover:bg-white/[0.03] transition";
         tr.innerHTML = `
-          <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
-          <td class="py-3 px-4 font-bold text-slate-100">${item.nama}</td>
-          <td class="py-3 px-4 font-mono font-bold text-amber-400">${item.plat}</td>
-          <td class="py-3 px-4 text-slate-300">${item.pengguna}</td>
-          <td class="py-3 px-4 text-center font-mono text-xs text-slate-400">${serviceMotor.length} Kali Klaim</td>
-          <td class="py-3 px-4 text-right font-mono font-bold text-emerald-400 text-sm">${formatRupiah(totalPotongan)}</td>
+          <td class="py-3.5 px-4 text-center text-xs text-slate-400 num-tabular">${idx + 1}</td>
+          <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">${item.nama}</td>
+          <td class="py-3.5 px-4 font-bold text-amber-600 dark:text-cyber-orange">${item.plat}</td>
+          <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">${item.pengguna}</td>
+          <td class="py-3.5 px-4 text-center text-xs text-slate-500 num-tabular">${serviceMotor.length} Kali Klaim</td>
+          <td class="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 text-sm num-tabular">${formatRupiah(totalPotongan)}</td>
         `;
         tbody.appendChild(tr);
       });
       lucide.createIcons();
     }
 
-    // AKSI TELEGRAM & REMINDER DARI WEB
+    // TELEGRAM ACTIONS
     function sendTestReminder(id, nama) {
-      showToast(`Mengirim test reminder ${nama} ke Telegram...`, "info");
+      showToast(`Mengirim reminder ${nama} ke Telegram...`, "info");
       postToCloud({ apiAction: "testReminder", id: id });
     }
 
@@ -875,13 +1485,13 @@
       }
     }
 
-    // LOGIKA SIKLUS SERVIS PRESET & CUSTOM HARI
+    // SIKLUS SERVIS PRESET & CUSTOM
     function getSelectedIntervalDays() {
       const preset = document.getElementById("motorIntervalPreset").value;
       if (preset === "custom") {
         return Math.max(1, Number(document.getElementById("motorIntervalCustom").value) || 21);
       }
-      return Number(preset) || 60;
+      return Number(preset) || Number(appSettings.defaultInterval) || 60;
     }
 
     function handleIntervalPresetChange() {
@@ -906,11 +1516,20 @@
     }
 
     function openMotorModal() {
-      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="bike" class="w-4 h-4 text-amber-400"></i><span>Tambah Data Motor Armada</span>`;
+      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="bike" class="w-4 h-4 text-cyber-orange"></i><span>Tambah Data Motor Armada</span>`;
       document.getElementById("formMotor").reset();
       document.getElementById("motorEditId").value = "";
-      document.getElementById("motorIntervalPreset").value = "60";
-      document.getElementById("customIntervalWrapper").classList.add("hidden");
+
+      const defInt = String(appSettings.defaultInterval || 60);
+      const presetOptions = ["14", "21", "30", "60", "90"];
+      if (presetOptions.includes(defInt)) {
+        document.getElementById("motorIntervalPreset").value = defInt;
+        document.getElementById("customIntervalWrapper").classList.add("hidden");
+      } else {
+        document.getElementById("motorIntervalPreset").value = "custom";
+        document.getElementById("motorIntervalCustom").value = defInt;
+        document.getElementById("customIntervalWrapper").classList.remove("hidden");
+      }
 
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById("motorServisTerakhir").value = todayStr;
@@ -967,7 +1586,7 @@
       const item = armadaList.find(a => a.id === id);
       if (!item) return;
 
-      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i><span>Edit Data Motor</span>`;
+      document.getElementById("modalMotorTitle").innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 text-cyber-orange"></i><span>Edit Data Motor</span>`;
       document.getElementById("motorEditId").value = item.id;
       document.getElementById("motorNama").value = item.nama;
       document.getElementById("motorKategori").value = item.kategori;
@@ -1004,7 +1623,7 @@
       }
     }
 
-    // MODAL SERVICE HANDLERS
+    // MODAL SERVICE
     function openServiceModal() {
       if (armadaList.length === 0) {
         alert("Silakan masukkan minimal 1 data motor armada terlebih dahulu.");
@@ -1015,7 +1634,7 @@
       armadaList.forEach(m => {
         const opt = document.createElement("option");
         opt.value = m.id;
-        opt.innerText = `${m.nama} - ${m.plat} (${m.kategori})`;
+        opt.innerText = `${m.pengguna} — ${m.nama} (${m.plat})`;
         select.appendChild(opt);
       });
 
@@ -1045,7 +1664,8 @@
         jenis: document.getElementById("serviceJenis").value.trim(),
         bengkel: document.getElementById("serviceBengkel").value.trim(),
         biaya: Number(document.getElementById("serviceBiaya").value) || 0,
-        catatan: document.getElementById("serviceCatatan").value
+        catatan: document.getElementById("serviceCatatan").value,
+        archived: false
       };
 
       const interval = Number(motor.interval) || 60;
@@ -1053,9 +1673,11 @@
       motor.servisTerakhir = tglServis;
       motor.jadwalBerikutnya = nextDate.toISOString().split('T')[0];
       motor.status = "Aman";
+      motor.keterangan = String(motor.keterangan || "").replace(/^\[DARURAT\][^|]*(\|\s*)?/, "").trim() || motor.keterangan;
 
       serviceList.unshift(serviceObj);
       saveLocalCache();
+      populateYearFilterOptions();
       closeServiceModal();
       renderCurrentTab();
       showToast("Riwayat servis disimpan & jadwal berikutnya di-reset!", "success");
@@ -1063,27 +1685,100 @@
     }
 
     function deleteService(id) {
-      if (confirm("Hapus catatan servis ini?")) {
+      if (confirm("Hapus catatan servis ini secara permanen?")) {
         serviceList = serviceList.filter(s => s.id !== id);
         saveLocalCache();
+        populateYearFilterOptions();
         renderCurrentTab();
         postToCloud({ apiAction: "deleteService", id: id });
       }
     }
 
-    // SETTINGS MODAL
-    function openSettingsModal() {
-      document.getElementById("settingApiUrl").value = API_URL;
+    // SETTINGS MODAL LENGKAP
+    function openSettingsModal(initialTab = 'laporan') {
+      document.getElementById("setKopInstansi").value = appSettings.kopInstansi;
+      document.getElementById("setKopDivisi").value = appSettings.kopDivisi;
+      document.getElementById("setKopAlamat").value = appSettings.kopAlamat;
+      document.getElementById("setKopKota").value = appSettings.kopKota;
+      document.getElementById("setKopJudulLaporan").value = appSettings.kopJudulLaporan;
+      document.getElementById("setSignKiri").value = appSettings.signKiri;
+      document.getElementById("setSignKanan").value = appSettings.signKanan;
+
+      document.getElementById("setUiBrand").value = appSettings.uiBrand;
+      document.getElementById("setDefaultInterval").value = appSettings.defaultInterval;
+      document.getElementById("chkShowOperasional").checked = appSettings.showOperasional;
+      document.getElementById("chkShowSync").checked = appSettings.showSync;
+      document.getElementById("chkShowLaporan").checked = appSettings.showLaporan;
+      document.getElementById("chkShowStats").checked = appSettings.showStats;
+
+      document.getElementById("settingApiUrl").value = appSettings.apiUrl;
+      document.getElementById("setAutoSyncSec").value = String(appSettings.autoSyncSec);
+
+      switchSettingTab(initialTab);
       document.getElementById("modalSettings").classList.remove("hidden");
+      lucide.createIcons();
     }
+
     function closeSettingsModal() {
       document.getElementById("modalSettings").classList.add("hidden");
     }
-    function saveSettings() {
-      const url = document.getElementById("settingApiUrl").value.trim();
-      if (url) {
-        API_URL = url;
-        localStorage.setItem("yayasan_motor_api_url", url);
+
+    function switchSettingTab(tab) {
+      ['laporan', 'tampilan', 'api'].forEach(t => {
+        const btn = document.getElementById("stab-btn-" + t);
+        const cnt = document.getElementById("stab-content-" + t);
+        if (t === tab) {
+          btn.className = "px-3.5 py-2 rounded-t-lg border-b-2 border-cyber-orange text-amber-600 dark:text-cyber-orange bg-white dark:bg-white/[0.04]";
+          cnt.classList.remove("hidden");
+        } else {
+          btn.className = "px-3.5 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+          cnt.classList.add("hidden");
+        }
+      });
+    }
+
+    function saveAllSettings() {
+      appSettings.kopInstansi = document.getElementById("setKopInstansi").value.trim() || DEFAULT_SETTINGS.kopInstansi;
+      appSettings.kopDivisi = document.getElementById("setKopDivisi").value.trim() || DEFAULT_SETTINGS.kopDivisi;
+      appSettings.kopAlamat = document.getElementById("setKopAlamat").value.trim() || DEFAULT_SETTINGS.kopAlamat;
+      appSettings.kopKota = document.getElementById("setKopKota").value.trim() || DEFAULT_SETTINGS.kopKota;
+      appSettings.kopJudulLaporan = document.getElementById("setKopJudulLaporan").value.trim() || DEFAULT_SETTINGS.kopJudulLaporan;
+      appSettings.signKiri = document.getElementById("setSignKiri").value.trim() || DEFAULT_SETTINGS.signKiri;
+      appSettings.signKanan = document.getElementById("setSignKanan").value.trim() || DEFAULT_SETTINGS.signKanan;
+
+      appSettings.uiBrand = document.getElementById("setUiBrand").value.trim() || DEFAULT_SETTINGS.uiBrand;
+      appSettings.defaultInterval = Math.max(1, Number(document.getElementById("setDefaultInterval").value) || 60);
+      appSettings.showOperasional = document.getElementById("chkShowOperasional").checked;
+      appSettings.showSync = document.getElementById("chkShowSync").checked;
+      appSettings.showLaporan = document.getElementById("chkShowLaporan").checked;
+      appSettings.showStats = document.getElementById("chkShowStats").checked;
+
+      const urlInput = document.getElementById("settingApiUrl").value.trim();
+      if (urlInput) appSettings.apiUrl = urlInput;
+      appSettings.autoSyncSec = Number(document.getElementById("setAutoSyncSec").value);
+
+      persistSettings();
+      applySettingsToUI();
+      setupAutoSyncTimer();
+      closeSettingsModal();
+      showToast("Pengaturan berhasil disimpan!", "success");
+      fetchFromCloud(false);
+    }
+
+    function resetDefaultSettings() {
+      if (confirm("Kembalikan semua pengaturan tampilan dan kop laporan ke default?")) {
+        appSettings = { ...DEFAULT_SETTINGS };
+        persistSettings();
+        applySettingsToUI();
+        closeSettingsModal();
+        showToast("Pengaturan dikembalikan ke default.", "info");
+      }
+    }
+
+    function resetLocalCacheData() {
+      if (confirm("Hapus cache data lokal di browser dan tarik ulang dari Google Sheets?")) {
+        localStorage.removeItem("yayasan_armada_list");
+        localStorage.removeItem("yayasan_service_list");
         closeSettingsModal();
         fetchFromCloud(true);
       }
@@ -1092,22 +1787,22 @@
     // EXPORT CSV
     function exportAllCSV() {
       let csv = "\uFEFF";
-      csv += "=== DATA MASTER ARMADA MOTOR YAYASAN ===\n";
-      csv += "No,Nama Motor,Kategori,Plat Nomor,Penanggung Jawab,Interval (Hari),Servis Terakhir,Jadwal Berikutnya,Status Reminder,Keterangan Kondisi\n";
+      csv += `=== ${appSettings.kopInstansi} — DATA MASTER ARMADA ===\n`;
+      csv += "No,Penanggung Jawab,Nama Motor,Kategori,Plat Nomor,Interval (Hari),Servis Terakhir,Jadwal Berikutnya,Status Reminder,Keterangan Kondisi\n";
       armadaList.forEach((m, i) => {
-        csv += `"${i+1}","${m.nama}","${m.kategori}","${m.plat}","${m.pengguna}","${m.interval || 60}","${m.servisTerakhir || ''}","${m.jadwalBerikutnya || ''}","${m.status || 'Aman'}","${m.keterangan || ''}"\n`;
+        csv += `"${i+1}","${m.pengguna}","${m.nama}","${m.kategori}","${m.plat}","${m.interval || 60}","${m.servisTerakhir || ''}","${m.jadwalBerikutnya || ''}","${m.status || 'Aman'}","${m.keterangan || ''}"\n`;
       });
 
       csv += "\n=== RIWAYAT SERVICE & MAINTENANCE MOTOR ===\n";
-      csv += "No,Tanggal,Nama Motor,Plat Nomor,Jenis Service,Bengkel,Biaya (Rp),Kategori Pemotongan\n";
+      csv += "No,Tanggal,Nama Motor,Plat Nomor,Jenis Service,Bengkel,Biaya (Rp),Kategori Pemotongan,Status Arsip\n";
       serviceList.forEach((s, i) => {
-        csv += `"${i+1}","${s.tgl}","${s.namaMotor}","${s.plat}","${s.jenis}","${s.bengkel}","${s.biaya}","${s.catatan}"\n`;
+        csv += `"${i+1}","${s.tgl}","${s.namaMotor}","${s.plat}","${s.jenis}","${s.bengkel}","${s.biaya}","${s.catatan}","${s.archived ? 'Arsip' : 'Aktif'}"\n`;
       });
 
       csv += "\n=== REKAPITULASI POTONGAN BIAYA SEWA MOTOR ===\n";
       csv += "No,Nama Motor Sewaan,Plat Nomor,Penanggung Jawab,Total Potongan Biaya Sewa (Rp)\n";
       armadaList.filter(a => a.kategori === 'Sewaan').forEach((m, i) => {
-        const claimServices = serviceList.filter(s => (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+        const claimServices = serviceList.filter(s => !s.archived && (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
         const totalClaim = claimServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
         csv += `"${i+1}","${m.nama}","${m.plat}","${m.pengguna}","${totalClaim}"\n`;
       });
@@ -1116,23 +1811,44 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `Laporan_Motor_Baksos_Yayasan_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `Laporan_Armada_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
     // PRINT REPORT A4
-    function triggerPrintReport() {
+    function triggerPrintReport(filterYm = null) {
       const todayStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('printKopInstansi').innerText = appSettings.kopInstansi;
+      document.getElementById('printKopDivisi').innerText = appSettings.kopDivisi;
+      document.getElementById('printKopAlamat').innerText = appSettings.kopAlamat;
+      document.getElementById('printKopJudulLaporan').innerText = appSettings.kopJudulLaporan;
+      document.getElementById('printKotaSign').innerText = appSettings.kopKota;
+      document.getElementById('printSignKiri').innerText = appSettings.signKiri;
+      document.getElementById('printSignKanan').innerText = appSettings.signKanan;
+
       document.getElementById('printDate').innerText = todayStr;
       document.getElementById('printDateSign').innerText = todayStr;
+
+      const periodeEl = document.getElementById('printPeriodeLabel');
+      if (filterYm) {
+        const [y, m] = filterYm.split("-");
+        periodeEl.innerText = `| Periode Laporan: ${MONTH_NAMES_ID[m] || m} ${y}`;
+      } else {
+        periodeEl.innerText = "";
+      }
+
+      const targetServices = serviceList.filter(s => {
+        if (filterYm) return (s.tgl || "").startsWith(filterYm);
+        return !s.archived;
+      });
 
       const totalArmada = armadaList.length;
       const totalYayasan = armadaList.filter(a => a.kategori === 'Yayasan').length;
       const totalSewaan = armadaList.filter(a => a.kategori === 'Sewaan').length;
-      const totalBiayaService = serviceList.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
-      const totalPotonganSewa = serviceList.reduce((acc, curr) => {
+      const totalBiayaService = targetServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
+      const totalPotonganSewa = targetServices.reduce((acc, curr) => {
         return curr.catatan === "Sparepart Khusus (Potong Sewa)" ? acc + (Number(curr.biaya) || 0) : acc;
       }, 0);
 
@@ -1141,7 +1857,7 @@
       document.getElementById('printMotorSewaan').innerText = totalSewaan;
       document.getElementById('printTotalBiaya').innerText = formatRupiah(totalBiayaService);
       document.getElementById('printTotalPotongan').innerText = formatRupiah(totalPotonganSewa);
-      document.getElementById('printTotalServisCount').innerText = serviceList.length;
+      document.getElementById('printTotalServisCount').innerText = targetServices.length;
 
       const printArmadaBody = document.getElementById('printArmadaBody');
       printArmadaBody.innerHTML = armadaList.length === 0
@@ -1149,25 +1865,25 @@
         : armadaList.map((m, idx) => `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
-            <td style="font-weight: bold;">${m.nama}</td>
+            <td style="font-weight: bold;">${m.pengguna}</td>
+            <td>${m.nama}</td>
             <td style="text-align: center;">${m.kategori}</td>
-            <td style="text-align: center; font-family: monospace; font-weight: bold;">${m.plat}</td>
-            <td>${m.pengguna}</td>
-            <td style="text-align: center; font-family: monospace;">${m.jadwalBerikutnya || '-'}</td>
+            <td style="text-align: center; font-weight: bold;">${m.plat}</td>
+            <td style="text-align: center;">${m.jadwalBerikutnya || '-'}</td>
             <td>${m.keterangan || '-'}</td>
           </tr>`).join('');
 
       const printServiceBody = document.getElementById('printServiceBody');
-      printServiceBody.innerHTML = serviceList.length === 0
-        ? '<tr><td colspan="7" style="text-align:center;">Belum ada riwayat service motor.</td></tr>'
-        : serviceList.map((s, idx) => `
+      printServiceBody.innerHTML = targetServices.length === 0
+        ? '<tr><td colspan="7" style="text-align:center;">Belum ada riwayat service motor pada periode ini.</td></tr>'
+        : targetServices.map((s, idx) => `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
-            <td style="text-align: center; font-family: monospace;">${s.tgl}</td>
+            <td style="text-align: center;">${s.tgl}</td>
             <td style="font-weight: bold;">${s.namaMotor} (${s.plat})</td>
             <td>${s.jenis}</td>
             <td>${s.bengkel}</td>
-            <td style="text-align: right; font-family: monospace; font-weight: bold;">${formatRupiah(s.biaya)}</td>
+            <td style="text-align: right; font-weight: bold;">${formatRupiah(s.biaya)}</td>
             <td>${s.catatan}</td>
           </tr>`).join('');
 
@@ -1176,15 +1892,15 @@
       printRekapBody.innerHTML = motorSewaanList.length === 0
         ? '<tr><td colspan="5" style="text-align:center;">Tidak ada motor sewaan.</td></tr>'
         : motorSewaanList.map((m, idx) => {
-          const claimServices = serviceList.filter(s => (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
+          const claimServices = targetServices.filter(s => (s.motorId === m.id || s.plat === m.plat) && s.catatan === "Sparepart Khusus (Potong Sewa)");
           const totalClaim = claimServices.reduce((acc, curr) => acc + (Number(curr.biaya) || 0), 0);
           return `
             <tr>
               <td style="text-align: center;">${idx + 1}</td>
               <td style="font-weight: bold;">${m.nama}</td>
-              <td style="text-align: center; font-family: monospace;">${m.plat}</td>
+              <td style="text-align: center;">${m.plat}</td>
               <td>${m.pengguna}</td>
-              <td style="text-align: right; font-family: monospace; font-weight: bold;">${formatRupiah(totalClaim)}</td>
+              <td style="text-align: right; font-weight: bold;">${formatRupiah(totalClaim)}</td>
             </tr>`;
         }).join('');
 
